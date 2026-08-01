@@ -1,0 +1,10 @@
+{
+  "name": "Remix: Remix: Remix: Remix: IndraVerse",
+  "description": "Smart Digital Twin Campus Operating Platform for Indra Ganesan Group of Institutions, featuring an interactive digital twin map, live sustainability tracking, JWT authentication, and AI sustainability insights.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

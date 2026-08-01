@@ -1,0 +1,307 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* ==========================================
+   INDRA GANESAN CENTRAL DESIGN SYSTEM TOKENS
+   ========================================== */
+
+:root {
+  /* Institutional Palette Tokens */
+  --ig-bg-body: #f7f9fc;
+  --ig-bg-section: #f2f6fb;
+  --ig-bg-card: #ffffff;
+  
+  /* Primary & Accent Blues */
+  --ig-primary: #0056d2;
+  --ig-primary-hover: #0045ab;
+  --ig-secondary: #0ea5e9;
+  --ig-primary-light: #e0f2fe;
+
+  /* WCAG AA Compliant High Contrast Typography Tokens */
+  --text-heading: #0f172a;
+  --text-body: #334155;
+  --text-secondary: #475569;
+  --text-label: #334155;
+
+  /* Layout & Border Tokens */
+  --ig-border: #e2e8f0;
+  --radius-card: 16px;
+  --shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 86, 210, 0.1), 0 8px 10px -6px rgba(0, 86, 210, 0.05);
+
+  color-scheme: light;
+}
+
+/* Global Reset & Portal Setup */
+html, body {
+  background-color: var(--ig-bg-body) !important;
+  color: var(--text-body) !important;
+  font-family: var(--font-sans) !important;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ig-bg-body);
+}
+
+/* Universal Smooth Transitions */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+a, button, input, select, textarea, div, section {
+  transition: background-color 200ms ease-out,
+              border-color 200ms ease-out,
+              color 200ms ease-out,
+              box-shadow 200ms ease-out,
+              transform 200ms ease-out;
+}
+
+/* ==========================================
+   TYPOGRAPHY REBUILD (POPPINS & INTER)
+   ========================================== */
+
+.page-title {
+  font-family: var(--font-display) !important;
+  font-size: 36px !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.section-title {
+  font-family: var(--font-display) !important;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  color: var(--text-heading) !important;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.card-title {
+  font-family: var(--font-display) !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: var(--text-heading) !important;
+  line-height: 1.35;
+}
+
+.chart-title {
+  font-family: var(--font-display) !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+  line-height: 1.3;
+}
+
+.body-text {
+  font-family: var(--font-sans) !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  color: var(--text-body) !important;
+  line-height: 1.6;
+}
+
+.secondary-text {
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  color: var(--text-secondary) !important;
+}
+
+.label-text {
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--text-body) !important;
+}
+
+.stat-value {
+  font-family: var(--font-display) !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: var(--text-heading) !important;
+  line-height: 1.1;
+}
+
+.stat-value-sm {
+  font-family: var(--font-display) !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--text-heading) !important;
+  line-height: 1.2;
+}
+
+/* ==========================================
+   PORTAL HEADER & NAVBAR
+   ========================================== */
+
+.header-portal-bg {
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid var(--ig-border) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+.nav-link-portal {
+  font-family: var(--font-display) !important;
+  color: var(--text-heading) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.nav-link-portal:hover {
+  color: var(--ig-primary) !important;
+  background-color: #f0f7ff !important;
+}
+
+.nav-link-portal.active {
+  color: var(--ig-primary) !important;
+  font-weight: 700 !important;
+  background: var(--ig-primary-light) !important;
+  border: 1px solid rgba(0, 86, 210, 0.25) !important;
+}
+
+/* Institutional Button System */
+.btn-primary-ig {
+  background: linear-gradient(135deg, var(--ig-primary) 0%, #0284c7 100%) !important;
+  color: #ffffff !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  padding: 12px 26px !important;
+  border-radius: 10px !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(0, 86, 210, 0.28) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+
+.btn-primary-ig:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 86, 210, 0.38) !important;
+}
+
+.btn-secondary-ig {
+  background: #ffffff !important;
+  color: var(--ig-primary) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  padding: 12px 26px !important;
+  border-radius: 10px !important;
+  border: 2px solid var(--ig-primary) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+
+.btn-secondary-ig:hover {
+  background: #f0f7ff !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Powered By IndraVerse Badge */
+.powered-by-badge {
+  background: #f0f7ff;
+  border: 1px solid rgba(0, 86, 210, 0.22);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ig-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+/* Hero Section Institutional Pattern */
+.bg-hero-pattern {
+  background-color: #ffffff;
+  background-image: radial-gradient(var(--ig-primary) 0.5px, transparent 0.5px), radial-gradient(#0284c7 0.5px, #ffffff 0.5px);
+  background-size: 18px 18px;
+  background-position: 0 0, 9px 9px;
+  background-opacity: 0.06;
+}
+
+/* ==========================================
+   CARDS & CONTAINERS (UNIFIED DESIGN)
+   ========================================== */
+
+.glass-card {
+  background: var(--ig-bg-card) !important;
+  border: 1px solid var(--ig-border) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  padding: 1.5rem !important; /* p-6 */
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 300ms ease !important;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-hover) !important;
+  border-color: rgba(0, 86, 210, 0.3) !important;
+}
+
+.section-alternate {
+  background-color: var(--ig-bg-section) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ig-bg-body);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ig-primary);
+}
+
+/* Leaflet Natural Color Map Setup */
+.leaflet-container {
+  border-radius: var(--radius-card) !important;
+  background: #e2e8f0 !important;
+}
+
+.leaflet-tile-pane {
+  filter: brightness(0.98) contrast(1.04) !important;
+}
