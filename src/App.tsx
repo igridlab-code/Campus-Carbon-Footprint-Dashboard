@@ -19,7 +19,7 @@ import StreetViewModal from './components/StreetViewModal';
 import AdminSettings from './components/AdminSettings';
 import ErrorBoundary from './components/ErrorBoundary';
 import { User, CampusAsset, IssueReport, AiRecommendation, UserRole, ReportStatus } from './types';
-import { getCmsConfig, CmsConfig } from './utils/cmsStore';
+import { getCmsConfig, CmsConfig, DEFAULT_CMS_CONFIG } from './utils/cmsStore';
 import { Menu, X, Shield, Lock, ShieldAlert, Facebook, Twitter, Linkedin, Youtube, Instagram } from 'lucide-react';
 
 const TAB_PATH_MAPPING: Record<string, string> = {
@@ -448,7 +448,7 @@ export default function App() {
   const [recommendations, setRecommendations] = useState<AiRecommendation[]>([]);
   
   // Central CMS Configuration Store State
-  const [cmsConfig, setCmsConfig] = useState<CmsConfig>(() => getCmsConfig());
+  const [cmsConfig, setCmsConfig] = useState<CmsConfig>(DEFAULT_CMS_CONFIG);
 
   const handleCmsUpdate = (newConfig: CmsConfig) => {
     setCmsConfig(newConfig);
@@ -505,6 +505,9 @@ export default function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
+        const config = await getCmsConfig();
+        setCmsConfig(config);
+        
         if (token) {
           const res = await fetch('/api/auth/me', {
             headers: { 'Authorization': `Bearer ${token}` }

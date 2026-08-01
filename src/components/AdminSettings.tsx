@@ -100,18 +100,18 @@ export default function AdminSettings({
     if (cmsConfig) setCmsForm(cmsConfig);
   }, [cmsConfig]);
 
-  const handleCmsFormSave = (e: React.FormEvent) => {
+  const handleCmsFormSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setCmsSuccessMsg('');
-    const updated = saveCmsConfig(cmsForm);
+    const updated = await saveCmsConfig(cmsForm);
     if (onCmsUpdate) onCmsUpdate(updated);
     setCmsSuccessMsg('Branding & Portal CMS Configuration saved successfully! Live changes applied immediately.');
     setTimeout(() => setCmsSuccessMsg(''), 4000);
   };
 
-  const handleCmsReset = () => {
+  const handleCmsReset = async () => {
     if (window.confirm('Reset CMS configuration to default Indra Ganesan Institutions values?')) {
-      const reset = resetCmsConfig();
+      const reset = await resetCmsConfig();
       setCmsForm(reset);
       if (onCmsUpdate) onCmsUpdate(reset);
       setCmsSuccessMsg('CMS Configuration reset to defaults.');

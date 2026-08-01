@@ -13,8 +13,14 @@
       "status": "Active",
       "createdAt": "2026-06-12T09:26:22.095Z",
       "failedLoginAttempts": 0,
-      "lastLogin": "2026-07-31T06:34:49.466Z",
+      "lastLogin": "2026-08-01T11:05:04.853Z",
       "loginHistory": [
+        {
+          "id": "login-tljs096",
+          "timestamp": "2026-08-01T11:05:04.853Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
         {
           "id": "login-04gspfs",
           "timestamp": "2026-07-31T06:34:49.466Z",
@@ -68,16 +74,9 @@
           "timestamp": "2026-07-30T09:41:13.150Z",
           "ip": "127.0.0.1",
           "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
-        },
-        {
-          "id": "login-fvuaq93",
-          "timestamp": "2026-07-30T08:58:43.032Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
         }
       ],
       "activeSessions": [
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQwMTkyMywiZXhwIjoxNzg1NDA1NTIzfQ.8mu_lIxPIHZlIa0kiQHtX8W96ap9WIQaI0tr4Ukvgxo",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQwNDQ3MywiZXhwIjoxNzg1NDA4MDczfQ.taeUTLZuFyWyKRayhY18sv_lOSqVKhO9nzRGyAtcwzY",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQwNDcxNywiZXhwIjoxNzg1NDA4MzE3fQ.Yoc1yXCW53lNCRiAxuELri9hPzhM2gTFVZWywo9bI1s",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQwNTAwNCwiZXhwIjoxNzg1NDA4NjA0fQ.glBJuaYaPA1K4H_Xr9ZjiyUe02KRw-nRqTvoxJ78HrI",
@@ -86,68 +85,69 @@
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQwOTYxNCwiZXhwIjoxNzg1NDEzMjE0fQ.iNG17Bo5d4yLClxsnPGDlSyzqIorIqloesV78fAawgU",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQ3ODgzOCwiZXhwIjoxNzg1NDgyNDM4fQ.TY7Ortc6SJ-M_E7qcYOExZjvjT1M6bpAYlwSiz4hhaE",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQ3OTYzMSwiZXhwIjoxNzg1NDgzMjMxfQ.H_tE7ysULD_7YjAd6kcWBGzqwFJETGVzMXWewdW7eJQ",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQ3OTY4OSwiZXhwIjoxNzg1NDgzMjg5fQ.ci3skPjSaqr6UXp0RU0qUz2vqXd5ba_4Yjx0D18DjuA"
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTQ3OTY4OSwiZXhwIjoxNzg1NDgzMjg5fQ.ci3skPjSaqr6UXp0RU0qUz2vqXd5ba_4Yjx0D18DjuA",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NTU4MjMwNCwiZXhwIjoxNzg1NTg1OTA0fQ.tvsI1Wfc76tU2VWv_ynjBZtLGa7oD9MmIWwM1RZ2lQo"
       ],
       "failedLoginsHistory": [
+        {
+          "id": "fail-fujezfk",
+          "timestamp": "2026-08-01T11:03:02.677Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
+        {
+          "id": "fail-ya8hev9",
+          "timestamp": "2026-08-01T11:01:44.274Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-k31c4s0",
+          "timestamp": "2026-08-01T11:00:46.401Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-12ivwdd",
+          "timestamp": "2026-08-01T11:00:01.436Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-pripdtc",
+          "timestamp": "2026-08-01T10:59:31.178Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-d9rhnsr",
+          "timestamp": "2026-08-01T10:59:01.864Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-58pcrn1",
+          "timestamp": "2026-08-01T10:45:10.138Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-rdu5nu0",
+          "timestamp": "2026-08-01T10:42:37.203Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-ave1ghl",
+          "timestamp": "2026-08-01T10:41:51.369Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        },
         {
           "id": "fail-blmz39a",
           "timestamp": "2026-07-30T09:49:49.160Z",
           "ip": "127.0.0.1",
           "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
-        },
-        {
-          "id": "fail-vgu9936",
-          "timestamp": "2026-07-28T09:16:32.766Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-ed7dkw4",
-          "timestamp": "2026-07-28T09:14:51.327Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-ypjabk8",
-          "timestamp": "2026-07-24T11:11:42.427Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-eg9z3hd",
-          "timestamp": "2026-07-24T08:36:59.597Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-kl5i2cw",
-          "timestamp": "2026-07-24T08:36:29.044Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-9ul7onf",
-          "timestamp": "2026-07-24T04:07:31.417Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-zcfsupi",
-          "timestamp": "2026-07-24T04:06:15.731Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-egbasnx",
-          "timestamp": "2026-07-24T04:05:26.672Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-4tmqr46",
-          "timestamp": "2026-07-24T03:58:45.827Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
         }
       ],
       "photoUrl": ""
@@ -11806,6 +11806,20 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-6smryq0",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Admin updated portal branding & CMS configuration.",
+      "timestamp": "2026-08-01T11:05:04.890Z"
+    },
+    {
+      "id": "aud-09jih41",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Admin updated portal branding & CMS configuration.",
+      "timestamp": "2026-08-01T11:05:04.873Z"
+    },
+    {
       "id": "aud-vv9zk0r",
       "actorEmail": "indraverseig@gmail.com",
       "actorName": "Super Admin",
@@ -11899,5 +11913,37 @@
     "lpg": 2.984,
     "waste": 1.9,
     "treeAbsorption": 21
+  },
+  "cmsConfig": {
+    "institutionName": "Indra Ganesan Institutions",
+    "institutionTagline": "Excellence, Innovation & Sustainability",
+    "logoIgridUrl": "",
+    "logoInstitutionUrl": "",
+    "logoCollegeUrl": "",
+    "footerLogoUrl": "",
+    "faviconUrl": "",
+    "address": "IG Valley, Manikandam, Tiruchirappalli – 620012, Tamil Nadu, India",
+    "email": "indraverseig@gmail.com",
+    "phone": "+91 8122277680",
+    "phoneSecondary": "+91 8056614862",
+    "websiteUrl": "https://www.indraganesan.co.in",
+    "googleMapUrl": "https://maps.google.com/?q=Indra+Ganesan+College+of+Engineering",
+    "facebookUrl": "https://facebook.com",
+    "twitterUrl": "https://twitter.com",
+    "linkedinUrl": "https://linkedin.com",
+    "instagramUrl": "https://instagram.com",
+    "youtubeUrl": "https://youtube.com",
+    "heroTitle": "Smart Campus Command Center",
+    "heroSubtitle": "Monitoring carbon digital twin, satellite telemetry, and net-zero benchmarks for Indra Ganesan Institutions.",
+    "heroBannerImageUrl": "",
+    "careerBannerTitle": "Ready to Launch Your Engineering Career?",
+    "careerBannerSubtitle": "Admissions are open for 2026-27. Secure your seat in India's premier engineering college.",
+    "footerDescription": "Indra Ganesan Institutions is a premier educational group dedicated to academic excellence, innovation, and institutional sustainability.",
+    "copyrightText": "© 2026 Indra Ganesan Institutions. All rights reserved.",
+    "poweredByText": "IndraVerse",
+    "primaryColor": "#0056D2",
+    "secondaryColor": "#0EA5E9",
+    "backgroundColor": "#F7F9FC",
+    "sectionBackgroundColor": "#F2F6FB"
   }
 }

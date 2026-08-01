@@ -79,32 +79,59 @@ export const DEFAULT_CMS_CONFIG: CmsConfig = {
   sectionBackgroundColor: '#F2F6FB'
 };
 
-const STORAGE_KEY = 'indraverse_cms_config';
-
-export function getCmsConfig(): CmsConfig {
+export async function getCmsConfig(): Promise<CmsConfig> {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return { ...DEFAULT_CMS_CONFIG, ...JSON.parse(saved) };
+    const res = await fetch('/api/cms-config');
+    if (res.ok) {
+      const data = await res.json();
+      return { ...DEFAULT_CMS_CONFIG, ...data };
     }
   } catch (err) {
-    console.error('Error reading CMS config from localStorage:', err);
+    console.error('Error fetching CMS config:', err);
   }
   return DEFAULT_CMS_CONFIG;
 }
 
-export function saveCmsConfig(config: CmsConfig): CmsConfig {
+export async function saveCmsConfig(config: CmsConfig): Promise<CmsConfig> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    const currentToken = localStorage.getItem('indraverse_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (currentToken) {
+      headers['Authorization'] = `Bearer ${currentToken}`;
+    }
+    const res = await fetch('/api/cms-config', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(config)
+    });
+    if (res.ok) {
+      return await res.json();
+    }
   } catch (err) {
-    console.error('Error saving CMS config to localStorage:', err);
+    console.error('Error saving CMS config:', err);
   }
   return config;
 }
 
-export function resetCmsConfig(): CmsConfig {
+export async function resetCmsConfig(): Promise<CmsConfig> {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    const currentToken = localStorage.getItem('indraverse_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (currentToken) {
+      headers['Authorization'] = `Bearer ${currentToken}`;
+    }
+    const res = await fetch('/api/cms-config', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(DEFAULT_CMS_CONFIG)
+    });
+    if (res.ok) {
+      return await res.json();
+    }
   } catch (err) {
     console.error('Error resetting CMS config:', err);
   }

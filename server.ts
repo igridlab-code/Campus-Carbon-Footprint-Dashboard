@@ -326,6 +326,72 @@ const PORT = 3000;
 
 const DB_FILE = path.join(process.cwd(), 'db.json');
 
+interface CmsConfig {
+  institutionName: string;
+  institutionTagline: string;
+  logoIgridUrl: string;
+  logoInstitutionUrl: string;
+  logoCollegeUrl: string;
+  footerLogoUrl: string;
+  faviconUrl: string;
+  address: string;
+  email: string;
+  phone: string;
+  phoneSecondary: string;
+  websiteUrl: string;
+  googleMapUrl: string;
+  facebookUrl: string;
+  twitterUrl: string;
+  linkedinUrl: string;
+  instagramUrl: string;
+  youtubeUrl: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroBannerImageUrl: string;
+  careerBannerTitle: string;
+  careerBannerSubtitle: string;
+  footerDescription: string;
+  copyrightText: string;
+  poweredByText: string;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundColor: string;
+  sectionBackgroundColor: string;
+}
+
+const DEFAULT_CMS_CONFIG: CmsConfig = {
+  institutionName: 'Indra Ganesan Institutions',
+  institutionTagline: 'Excellence, Innovation & Sustainability',
+  logoIgridUrl: '',
+  logoInstitutionUrl: '',
+  logoCollegeUrl: '',
+  footerLogoUrl: '',
+  faviconUrl: '',
+  address: 'IG Valley, Manikandam, Tiruchirappalli – 620012, Tamil Nadu, India',
+  email: 'indraverseig@gmail.com',
+  phone: '+91 8122277680',
+  phoneSecondary: '+91 8056614862',
+  websiteUrl: 'https://www.indraganesan.co.in',
+  googleMapUrl: 'https://maps.google.com/?q=Indra+Ganesan+College+of+Engineering',
+  facebookUrl: 'https://facebook.com',
+  twitterUrl: 'https://twitter.com',
+  linkedinUrl: 'https://linkedin.com',
+  instagramUrl: 'https://instagram.com',
+  youtubeUrl: 'https://youtube.com',
+  heroTitle: 'Smart Campus Command Center',
+  heroSubtitle: 'Monitoring carbon digital twin, satellite telemetry, and net-zero benchmarks for Indra Ganesan Institutions.',
+  heroBannerImageUrl: '',
+  careerBannerTitle: 'Ready to Launch Your Engineering Career?',
+  careerBannerSubtitle: "Admissions are open for 2026-27. Secure your seat in India's premier engineering college.",
+  footerDescription: 'Indra Ganesan Institutions is a premier educational group dedicated to academic excellence, innovation, and institutional sustainability.',
+  copyrightText: '© 2026 Indra Ganesan Institutions. All rights reserved.',
+  poweredByText: 'IndraVerse',
+  primaryColor: '#0056D2',
+  secondaryColor: '#0EA5E9',
+  backgroundColor: '#F7F9FC',
+  sectionBackgroundColor: '#F2F6FB'
+};
+
 // Interface for File-based DB
 interface LocalDatabase {
   users: (User & { 
@@ -351,6 +417,7 @@ interface LocalDatabase {
     waste: number;
     treeAbsorption: number;
   };
+  cmsConfig?: CmsConfig;
 }
 
 // Initial Database state - pre-seeded with Super Admin and approved registry entries
@@ -371,6 +438,7 @@ const initialDb: LocalDatabase = {
     }
   ],
   assets: campusAssets,
+  cmsConfig: DEFAULT_CMS_CONFIG,
   reports: [
     {
       id: 'rep-1',
@@ -450,6 +518,11 @@ function readDb(): LocalDatabase {
     const data = JSON.parse(content);
     console.log('Database read success');
     let changed = false;
+
+    if (!data.cmsConfig) {
+      data.cmsConfig = DEFAULT_CMS_CONFIG;
+      changed = true;
+    }
 
     if (!data.importedStudents || data.importedStudents.length === 0) {
       data.importedStudents = [
@@ -3093,6 +3166,30 @@ async function startServer() {
         monthly: monthlyTrend
       }
     });
+  });
+
+  // CMS Config: GET configuration
+  app.get('/api/cms-config', (req, res) => {
+    const dbData = readDb();
+    res.json(dbData.cmsConfig || DEFAULT_CMS_CONFIG);
+  });
+
+  // CMS Config: POST to update configuration (Admin only)
+  app.post('/api/cms-config', authenticateToken, requireAdmin, (req: any, res) => {
+    const dbData = readDb();
+    dbData.cmsConfig = req.body;
+
+    // Write Audit Log
+    dbData.auditLogs.unshift({
+      id: 'aud-' + Math.random().toString(36).substring(2, 9),
+      actorEmail: req.user.email,
+      actorName: req.user.name,
+      action: 'Admin updated portal branding & CMS configuration.',
+      timestamp: new Date().toISOString()
+    });
+
+    writeDb(dbData);
+    res.json(dbData.cmsConfig);
   });
 
   // --- Serve Frontend ---
