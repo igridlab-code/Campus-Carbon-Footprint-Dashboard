@@ -733,6 +733,27 @@ async function startServer() {
     message: 'Too many forgot password requests. Please try again after 10 minutes.'
   });
 
+  // Security Middleware: Prevent public access to db.json, .ts, .tsx, .env, and /src/
+  app.use((req, res, next) => {
+    let cleanPath = path.normalize(req.path).replace(/\\/g, '/').toLowerCase();
+    if (cleanPath.endsWith('/')) {
+      cleanPath = cleanPath.slice(0, -1);
+    }
+    if (
+      cleanPath === '/db.json' ||
+      cleanPath.endsWith('.ts') ||
+      cleanPath.endsWith('.tsx') ||
+      cleanPath === '/.env' ||
+      cleanPath.startsWith('/.env.') ||
+      cleanPath.startsWith('/.env/') ||
+      cleanPath === '/src' ||
+      cleanPath.startsWith('/src/')
+    ) {
+      return res.status(404).send('Not Found');
+    }
+    next();
+  });
+
   // Configure static uploads directory serving
   const uploadsDir = path.join(process.cwd(), 'uploads');
   if (!fs.existsSync(uploadsDir)) {
