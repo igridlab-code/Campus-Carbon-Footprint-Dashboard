@@ -1,12 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import bcryptjs from 'bcryptjs';
 import crypto from 'crypto';
-
-const DB_FILE = path.join(process.cwd(), 'db.json');
+import { supabase } from '../supabaseClient';
 
 function generateRandomPassword(length = 20): string {
-  // Use a safe subset of printable characters (letters, numbers, and some basic symbols)
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^*()_+-=[]{}';
   let password = '';
   for (let i = 0; i < length; i++) {
@@ -16,19 +12,18 @@ function generateRandomPassword(length = 20): string {
   return password;
 }
 
-function resetAdminPassword() {
-  if (!fs.existsSync(DB_FILE)) {
-    console.error(`Error: db.json file not found at ${DB_FILE}`);
-    process.exit(1);
-  }
-
+async function resetAdminPassword() {
+  console.log('Connecting to Supabase to reset Admin password...');
   try {
-    const content = fs.readFileSync(DB_FILE, 'utf-8');
-    const data = JSON.parse(content);
+    const { data: rows, error: fetchError } = await supabase.from('users').select('data');
+    if (fetchError) {
+      throw new Error(`Failed to fetch users from Supabase: ${fetchError.message}`);
+    }
 
-    const adminUser = data.users.find((u: any) => u.role === 'Admin');
+    const users = (rows || []).map((r: any) => r.data);
+    const adminUser = users.find((u: any) => u.role === 'Admin');
     if (!adminUser) {
-      console.error('Error: Admin user not found in db.json');
+      console.error('Error: Admin user not found in the Supabase "users" table.');
       process.exit(1);
     }
 
@@ -37,16 +32,23 @@ function resetAdminPassword() {
     const hash = bcryptjs.hashSync(newPassword, salt);
 
     adminUser.passwordHash = hash;
-    // Reset sessions and login counters
     adminUser.failedLoginAttempts = 0;
     if (adminUser.activeSessions) {
       adminUser.activeSessions = [];
     }
 
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    const { error: updateError } = await supabase.from('users').upsert({
+      id: adminUser.id,
+      email: adminUser.email,
+      data: adminUser
+    });
+
+    if (updateError) {
+      throw new Error(`Failed to update admin user in Supabase: ${updateError.message}`);
+    }
 
     console.log('==================================================');
-    console.log('ADMIN PASSWORD RESET SUCCESSFUL');
+    console.log('ADMIN PASSWORD RESET SUCCESSFUL (SUPABASE)');
     console.log('==================================================');
     console.log(`Email/Username: ${adminUser.email}`);
     console.log(`New Admin Password: ${newPassword}`);

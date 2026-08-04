@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import { supabase } from './supabaseClient';
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -506,212 +508,307 @@ const initialDb: LocalDatabase = {
   ]
 };
 
-// Help helper to get or write to DB
-function readDb(): LocalDatabase {
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
-    console.log('Database write success: Initialized missing db.json');
-    return initialDb;
+// Cache settings
+const CACHE_TTL = 2000; // 2 seconds
+let cache: LocalDatabase | null = null;
+let cacheExpiry = 0;
+
+async function loadDbFromSupabase(): Promise<void> {
+  const [
+    usersRes,
+    assetsRes,
+    reportsRes,
+    recommendationsRes,
+    sustainabilityLogsRes,
+    auditLogsRes,
+    importedStudentsRes,
+    importedFacultyRes,
+    carbonFactorsRes,
+    cmsConfigRes
+  ] = await Promise.all([
+    supabase.from('users').select('data'),
+    supabase.from('assets').select('data'),
+    supabase.from('reports').select('data'),
+    supabase.from('recommendations').select('data'),
+    supabase.from('sustainability_logs').select('data'),
+    supabase.from('audit_logs').select('data'),
+    supabase.from('imported_students').select('data'),
+    supabase.from('imported_faculty').select('data'),
+    supabase.from('carbon_factors').select('data'),
+    supabase.from('cms_config').select('data')
+  ]);
+
+  const errors = [
+    { name: 'users', error: usersRes.error },
+    { name: 'assets', error: assetsRes.error },
+    { name: 'reports', error: reportsRes.error },
+    { name: 'recommendations', error: recommendationsRes.error },
+    { name: 'sustainability_logs', error: sustainabilityLogsRes.error },
+    { name: 'audit_logs', error: auditLogsRes.error },
+    { name: 'imported_students', error: importedStudentsRes.error },
+    { name: 'imported_faculty', error: importedFacultyRes.error },
+    { name: 'carbon_factors', error: carbonFactorsRes.error },
+    { name: 'cms_config', error: cmsConfigRes.error }
+  ].filter(x => x.error);
+
+  if (errors.length > 0) {
+    console.error('Errors loading database from Supabase:', errors);
   }
-  try {
-    const content = fs.readFileSync(DB_FILE, 'utf-8');
-    const data = JSON.parse(content);
-    console.log('Database read success');
-    let changed = false;
 
-    if (!data.cmsConfig) {
-      data.cmsConfig = DEFAULT_CMS_CONFIG;
-      changed = true;
+  cache = {
+    users: (usersRes.data || []).map((row: any) => row.data),
+    assets: (assetsRes.data || []).map((row: any) => row.data),
+    reports: (reportsRes.data || []).map((row: any) => row.data),
+    recommendations: (recommendationsRes.data || []).map((row: any) => row.data),
+    sustainabilityLogs: (sustainabilityLogsRes.data || []).map((row: any) => row.data),
+    auditLogs: (auditLogsRes.data || []).map((row: any) => row.data),
+    importedStudents: (importedStudentsRes.data || []).map((row: any) => row.data),
+    importedFaculty: (importedFacultyRes.data || []).map((row: any) => row.data),
+    carbonFactors: carbonFactorsRes.data?.[0]?.data,
+    cmsConfig: cmsConfigRes.data?.[0]?.data
+  };
+
+  cacheExpiry = Date.now() + CACHE_TTL;
+  console.log('Database read from Supabase and cache updated.');
+}
+
+async function readDb(): Promise<LocalDatabase> {
+  const now = Date.now();
+  if (cache && now < cacheExpiry) {
+    return JSON.parse(JSON.stringify(cache));
+  }
+  await loadDbFromSupabase();
+  return JSON.parse(JSON.stringify(cache!));
+}
+
+async function syncTable<T>(
+  tableName: string,
+  keyField: keyof T,
+  dbKeyField: string,
+  newItems: T[],
+  oldItems: T[],
+  mapRow: (item: T) => any
+): Promise<void> {
+  const toUpsert: any[] = [];
+  const oldItemMap = new Map<string, T>();
+  for (const item of oldItems) {
+    const keyVal = String(item[keyField]);
+    oldItemMap.set(keyVal, item);
+  }
+
+  for (const item of newItems) {
+    const keyVal = String(item[keyField]);
+    const oldItem = oldItemMap.get(keyVal);
+    if (!oldItem || JSON.stringify(oldItem) !== JSON.stringify(item)) {
+      toUpsert.push(mapRow(item));
     }
+  }
 
-    if (!data.importedStudents || data.importedStudents.length === 0) {
-      data.importedStudents = [
-        {
-          registerNumber: 'REG2026CS401',
-          name: 'Nagarjuna E',
-          department: 'Computer Science',
-          year: '3',
-          section: 'A',
-          institution: 'Engineering Block',
-          email: 'student@indraverse.edu',
-          phoneNumber: '+91 98765 43210'
-        }
-      ];
-      changed = true;
-    }
-    if (!data.importedFaculty || data.importedFaculty.length === 0) {
-      data.importedFaculty = [
-        {
-          facultyId: 'FAC2026PH011',
-          name: 'Dr. Senthil Kumar',
-          department: 'Physics',
-          designation: 'Professor',
-          institution: 'Science Block',
-          email: 'senthil@indraverse.edu',
-          phoneNumber: '+91 99887 76655'
-        }
-      ];
-      changed = true;
-    }
+  const newItemKeys = new Set(newItems.map(item => String(item[keyField])));
+  const toDelete = oldItems
+    .filter(item => !newItemKeys.has(String(item[keyField])))
+    .map(item => String(item[keyField]));
 
+  const promises = [];
+  if (toUpsert.length > 0) {
+    promises.push(
+      supabase.from(tableName).upsert(toUpsert).then(({ error }) => {
+        if (error) throw new Error(`Error upserting into ${tableName}: ${error.message}`);
+      })
+    );
+  }
+  if (toDelete.length > 0) {
+    promises.push(
+      supabase.from(tableName).delete().in(dbKeyField, toDelete).then(({ error }) => {
+        if (error) throw new Error(`Error deleting from ${tableName}: ${error.message}`);
+      })
+    );
+  }
 
+  await Promise.all(promises);
+}
 
-    // Automatically sanitize and enforce: remove legacy pre-seeded test and demo users if present
-    if (data.users && data.users.length > 0) {
-      const filtered = data.users.filter((u: any) => 
-        (u.role === 'Admin' || (u.id !== 'usr-faculty' && u.id !== 'usr-student')) && 
-        u.email !== 'student@indraverse.edu' && 
-        u.id !== 'usr-student-demo'
-      );
-      if (filtered.length !== data.users.length) {
-        data.users = filtered;
-        changed = true;
+async function writeDb(dbData: LocalDatabase): Promise<void> {
+  if (!cache) {
+    await loadDbFromSupabase();
+  }
+
+  const oldDb = cache!;
+
+  await Promise.all([
+    syncTable('users', 'id', 'id', dbData.users, oldDb.users || [], item => ({
+      id: item.id,
+      email: item.email,
+      data: item
+    })),
+    syncTable('assets', 'id', 'id', dbData.assets, oldDb.assets || [], item => ({
+      id: item.id,
+      name: item.name,
+      data: item
+    })),
+    syncTable('reports', 'id', 'id', dbData.reports, oldDb.reports || [], item => ({
+      id: item.id,
+      data: item
+    })),
+    syncTable('recommendations', 'id', 'id', dbData.recommendations || [], oldDb.recommendations || [], item => ({
+      id: item.id,
+      data: item
+    })),
+    syncTable('sustainability_logs', 'id', 'id', dbData.sustainabilityLogs || [], oldDb.sustainabilityLogs || [], item => ({
+      id: item.id,
+      asset_id: item.assetId,
+      log_date: item.date,
+      data: item
+    })),
+    syncTable('audit_logs', 'id', 'id', dbData.auditLogs || [], oldDb.auditLogs || [], item => ({
+      id: item.id,
+      actor_email: item.actorEmail,
+      data: item
+    })),
+    syncTable('imported_students', 'registerNumber', 'register_number', dbData.importedStudents || [], oldDb.importedStudents || [], item => ({
+      register_number: item.registerNumber,
+      data: item
+    })),
+    syncTable('imported_faculty', 'facultyId', 'faculty_id', dbData.importedFaculty || [], oldDb.importedFaculty || [], item => ({
+      faculty_id: item.facultyId,
+      data: item
+    })),
+    (async () => {
+      const oldCF = oldDb.carbonFactors;
+      const newCF = dbData.carbonFactors;
+      if (newCF && JSON.stringify(oldCF) !== JSON.stringify(newCF)) {
+        const { error } = await supabase.from('carbon_factors').upsert({ id: 'default', data: newCF });
+        if (error) throw new Error(`Error upserting carbon_factors: ${error.message}`);
       }
-    }
+    })(),
+    (async () => {
+      const oldCMS = oldDb.cmsConfig;
+      const newCMS = dbData.cmsConfig;
+      if (newCMS && JSON.stringify(oldCMS) !== JSON.stringify(newCMS)) {
+        const { error } = await supabase.from('cms_config').upsert({ id: 'default', data: newCMS });
+        if (error) throw new Error(`Error upserting cms_config: ${error.message}`);
+      }
+    })()
+  ]);
 
-    // Convert legacy $2b$ hashes to $2a$ on the fly
-    if (data.users && data.users.length > 0) {
-      data.users = data.users.map((u: any) => {
-        if (u.passwordHash && u.passwordHash.startsWith('$2b$')) {
-          u.passwordHash = '$2a$' + u.passwordHash.substring(4);
-          changed = true;
-        }
-        return u;
-      });
-    }
-
-    if (changed) {
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    }
-    return data;
-  } catch (error) {
-    console.error('Error reading database file, returning initial db', error);
-    return initialDb;
-  }
+  cache = JSON.parse(JSON.stringify(dbData));
+  cacheExpiry = Date.now() + CACHE_TTL;
+  console.log('Database written to Supabase and cache updated.');
 }
 
-function writeDb(dbData: LocalDatabase) {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(dbData, null, 2), 'utf-8');
-    console.log('Database write success');
-  } catch (error) {
-    console.error('Error writing to database file', error);
-  }
-}
+async function initializeAndMigrateDatabase() {
+  console.log('Initializing database and performing startup migrations...');
+  const dbData = await readDb();
+  let dbChanged = false;
 
-// Initialize and migrate database
-const dbData = readDb();
-let dbChanged = false;
-
-// Legacy $2b$ to $2a$ conversion is already handled in readDb()
-
-let adminUser = dbData.users.find(u => u.role === 'Admin');
-if (!adminUser) {
-  adminUser = {
-    id: 'usr-admin',
-    email: 'admin',
-    name: 'Super Admin',
-    role: 'Admin',
-    passwordHash: bcryptjs.hashSync('Admin@123', 10),
-    isFirstLogin: true
-  };
-  dbData.users.push(adminUser);
-  dbChanged = true;
-} else if (adminUser.isFirstLogin === undefined) {
-  // If exists but doesn't have isFirstLogin set, reset password to default Admin@123 and force change
-  adminUser.isFirstLogin = true;
-  adminUser.passwordHash = bcryptjs.hashSync('Admin@123', 10);
-  dbChanged = true;
-}
-
-// Enforce single Super Admin rule
-const adminsCount = dbData.users.filter(u => u.role === 'Admin').length;
-if (adminsCount > 1) {
-  const firstAdminIndex = dbData.users.findIndex(u => u.role === 'Admin');
-  dbData.users = dbData.users.filter((u, index) => u.role !== 'Admin' || index === firstAdminIndex);
-  dbChanged = true;
-}
-
-// Removed forced sustainability log wipe
-if (!dbData.sustainabilityLogs) {
-  dbData.sustainabilityLogs = [];
-  dbChanged = true;
-}
-if (!dbData.auditLogs || dbData.auditLogs.length === 0) {
-  dbData.auditLogs = [
-    {
-      id: 'aud-1',
-      actorEmail: 'admin',
-      actorName: 'Super Admin',
-      action: 'Admin added default system telemetry coordinates.',
-      timestamp: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString()
-    },
-    {
-      id: 'aud-2',
-      actorEmail: 'admin',
-      actorName: 'Super Admin',
-      action: 'Admin configured global institution pathways.',
-      timestamp: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
-    }
-  ];
-  dbChanged = true;
-}
-
-// Enforce carbonFactors initialization
-if (!dbData.carbonFactors) {
-  dbData.carbonFactors = {
-    electricity: 0.82,
-    diesel: 2.68,
-    petrol: 2.31,
-    lpg: 2.984,
-    waste: 1.9,
-    treeAbsorption: 21
-  };
-  dbChanged = true;
-}
-
-// Migrate assets to have proper tree and carbon-sink fields if loaded from legacy db.json
-dbData.assets = dbData.assets.map(asset => {
-  const treeCount = asset.treeCount !== undefined ? asset.treeCount : (asset.id === 'engineering-block' ? 250 : asset.id === 'nursery' ? 150 : asset.id === 'horticultural-garden' ? 200 : asset.id === 'dairy-farm' ? 80 : asset.id === 'ground' ? 50 : 0);
-  const greenCoverArea = asset.greenCoverArea !== undefined ? asset.greenCoverArea : (asset.id === 'engineering-block' ? 1200 : asset.id === 'nursery' ? 800 : asset.id === 'horticultural-garden' ? 1500 : asset.id === 'dairy-farm' ? 3000 : asset.id === 'ground' ? 5000 : 0);
-  const carbonAbsorptionRate = asset.carbonAbsorptionRate !== undefined ? asset.carbonAbsorptionRate : 21;
-  const annualCarbonAbsorption = asset.annualCarbonAbsorption !== undefined ? asset.annualCarbonAbsorption : (treeCount * carbonAbsorptionRate);
-  const streetViewUrl = asset.streetViewUrl !== undefined ? asset.streetViewUrl : (
-    ['engineering-block', 'ground', 'horticultural-garden', 'nursery', 'dairy-farm', 'main-gate', 'admin-block'].includes(asset.id)
-      ? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.1171447668583!2d78.63665!3d10.7415!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3baaf5e655555555%3A0x6bbaaf5e65555555!2sIndra+Ganesan+College+of+Engineering!5e0!3m2!1sen!2sin!4v1600000000000!5m2!1sen!2sin'
-      : ''
-  );
-
-  if (
-    asset.treeCount !== treeCount ||
-    asset.greenCoverArea !== greenCoverArea ||
-    asset.carbonAbsorptionRate !== carbonAbsorptionRate ||
-    asset.annualCarbonAbsorption !== annualCarbonAbsorption ||
-    asset.streetViewUrl !== streetViewUrl
-  ) {
+  let adminUser = dbData.users.find(u => u.role === 'Admin');
+  if (!adminUser) {
+    adminUser = {
+      id: 'usr-admin',
+      email: 'admin',
+      name: 'Super Admin',
+      role: 'Admin',
+      passwordHash: bcryptjs.hashSync('Admin@123', 10),
+      isFirstLogin: true
+    };
+    dbData.users.push(adminUser);
+    dbChanged = true;
+  } else if (adminUser.isFirstLogin === undefined) {
+    adminUser.isFirstLogin = true;
+    adminUser.passwordHash = bcryptjs.hashSync('Admin@123', 10);
     dbChanged = true;
   }
 
-  return {
-    ...asset,
-    treeCount,
-    greenCoverArea,
-    carbonAbsorptionRate,
-    annualCarbonAbsorption,
-    streetViewUrl
-  };
-});
+  const adminsCount = dbData.users.filter(u => u.role === 'Admin').length;
+  if (adminsCount > 1) {
+    const firstAdminIndex = dbData.users.findIndex(u => u.role === 'Admin');
+    dbData.users = dbData.users.filter((u, index) => u.role !== 'Admin' || index === firstAdminIndex);
+    dbChanged = true;
+  }
 
-if (!dbData.sustainabilityLogs || dbData.sustainabilityLogs.length === 0) {
-  dbData.sustainabilityLogs = generateSeededLogs(dbData.assets);
-  dbChanged = true;
+  if (!dbData.sustainabilityLogs) {
+    dbData.sustainabilityLogs = [];
+    dbChanged = true;
+  }
+  if (!dbData.auditLogs || dbData.auditLogs.length === 0) {
+    dbData.auditLogs = [
+      {
+        id: 'aud-1',
+        actorEmail: 'admin',
+        actorName: 'Super Admin',
+        action: 'Admin added default system telemetry coordinates.',
+        timestamp: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString()
+      },
+      {
+        id: 'aud-2',
+        actorEmail: 'admin',
+        actorName: 'Super Admin',
+        action: 'Admin configured global institution pathways.',
+        timestamp: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
+      }
+    ];
+    dbChanged = true;
+  }
+
+  if (!dbData.carbonFactors) {
+    dbData.carbonFactors = {
+      electricity: 0.82,
+      diesel: 2.68,
+      petrol: 2.31,
+      lpg: 2.984,
+      waste: 1.9,
+      treeAbsorption: 21
+    };
+    dbChanged = true;
+  }
+
+  dbData.assets = dbData.assets.map(asset => {
+    const treeCount = asset.treeCount !== undefined ? asset.treeCount : (asset.id === 'engineering-block' ? 250 : asset.id === 'nursery' ? 150 : asset.id === 'horticultural-garden' ? 200 : asset.id === 'dairy-farm' ? 80 : asset.id === 'ground' ? 50 : 0);
+    const greenCoverArea = asset.greenCoverArea !== undefined ? asset.greenCoverArea : (asset.id === 'engineering-block' ? 1200 : asset.id === 'nursery' ? 800 : asset.id === 'horticultural-garden' ? 1500 : asset.id === 'dairy-farm' ? 3000 : asset.id === 'ground' ? 5000 : 0);
+    const carbonAbsorptionRate = asset.carbonAbsorptionRate !== undefined ? asset.carbonAbsorptionRate : 21;
+    const annualCarbonAbsorption = asset.annualCarbonAbsorption !== undefined ? asset.annualCarbonAbsorption : (treeCount * carbonAbsorptionRate);
+    const streetViewUrl = asset.streetViewUrl !== undefined ? asset.streetViewUrl : (
+      ['engineering-block', 'ground', 'horticultural-garden', 'nursery', 'dairy-farm', 'main-gate', 'admin-block'].includes(asset.id)
+        ? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.1171447668583!2d78.63665!3d10.7415!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3baaf5e655555555%3A0x6bbaaf5e65555555!2sIndra+Ganesan+College+of+Engineering!5e0!3m2!1sen!2sin!4v1600000000000!5m2!1sen!2sin'
+        : ''
+    );
+
+    if (
+      asset.treeCount !== treeCount ||
+      asset.greenCoverArea !== greenCoverArea ||
+      asset.carbonAbsorptionRate !== carbonAbsorptionRate ||
+      asset.annualCarbonAbsorption !== annualCarbonAbsorption ||
+      asset.streetViewUrl !== streetViewUrl
+    ) {
+      dbChanged = true;
+    }
+
+    return {
+      ...asset,
+      treeCount,
+      greenCoverArea,
+      carbonAbsorptionRate,
+      annualCarbonAbsorption,
+      streetViewUrl
+    };
+  });
+
+  if (!dbData.sustainabilityLogs || dbData.sustainabilityLogs.length === 0) {
+    dbData.sustainabilityLogs = generateSeededLogs(dbData.assets);
+    dbChanged = true;
+  }
+
+  if (dbChanged) {
+    await writeDb(dbData);
+    console.log('Database initialization changes persisted to Supabase.');
+  } else {
+    console.log('Database initialization check completed. No changes required.');
+  }
 }
 
-if (dbChanged) {
-  writeDb(dbData);
-}
 
 async function startServer() {
+  await initializeAndMigrateDatabase();
   const app = express();
   app.set('trust proxy', 1);
   app.use(helmet({
@@ -741,13 +838,15 @@ async function startServer() {
     }
     if (
       cleanPath === '/db.json' ||
-      cleanPath.endsWith('.ts') ||
-      cleanPath.endsWith('.tsx') ||
       cleanPath === '/.env' ||
       cleanPath.startsWith('/.env.') ||
       cleanPath.startsWith('/.env/') ||
-      cleanPath === '/src' ||
-      cleanPath.startsWith('/src/')
+      (process.env.NODE_ENV === 'production' && (
+        cleanPath.endsWith('.ts') ||
+        cleanPath.endsWith('.tsx') ||
+        cleanPath === '/src' ||
+        cleanPath.startsWith('/src/')
+      ))
     ) {
       return res.status(404).send('Not Found');
     }
@@ -807,12 +906,12 @@ async function startServer() {
       return res.status(401).json({ message: 'Authorization token required' });
     }
 
-    jwt.verify(token, JWT_SECRET, (err: any, decodedUser: any) => {
+    jwt.verify(token, JWT_SECRET, async (err: any, decodedUser: any) => {
       if (err) {
         return res.status(403).json({ message: 'Invalid or expired session token' });
       }
       
-      const dbData = readDb();
+      const dbData = await readDb();
       const user = dbData.users.find(u => u.id === decodedUser.id && !u.deleted);
       if (!user) {
         return res.status(403).json({ message: 'User not found or deleted' });
@@ -861,7 +960,7 @@ async function startServer() {
   // --- API Routes ---
 
   // Auth: Register (No additional Admin registration allowed)
-  app.post('/api/auth/register', authLimiter, (req, res) => {
+  app.post('/api/auth/register', authLimiter, async (req, res) => {
     const { email, password, name, role } = req.body;
     if (!email || !password || !name || !role) {
       return res.status(400).json({ message: 'All fields (email, password, name, role) are required.' });
@@ -871,7 +970,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Registration of additional Super Admin accounts is forbidden.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const existingUser = dbData.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered.' });
@@ -889,7 +988,7 @@ async function startServer() {
     };
 
     dbData.users.push(newUser);
-    writeDb(dbData);
+    await writeDb(dbData);
     console.log(`User registration success: ${newUser.email}`);
 
     const token = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role, name: newUser.name }, JWT_SECRET, { expiresIn: '7d' });
@@ -907,13 +1006,13 @@ async function startServer() {
   });
 
   // Auth: Login (With Super Admin username/email flexibility and force password change check)
-  app.post('/api/auth/login', authLimiter, (req, res) => {
+  app.post('/api/auth/login', authLimiter, async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email or Username and password are required.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const searchVal = email.toLowerCase().trim();
     
     // Support searching by email, username 'admin', register number or faculty ID
@@ -959,7 +1058,7 @@ async function startServer() {
       if (user.failedLoginsHistory.length > 10) {
         user.failedLoginsHistory = user.failedLoginsHistory.slice(0, 10);
       }
-      writeDb(dbData);
+      await writeDb(dbData);
 
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -1001,7 +1100,7 @@ async function startServer() {
       user.activeSessions = user.activeSessions.slice(-10); // keep up to 10 latest sessions
     }
 
-    writeDb(dbData);
+    await writeDb(dbData);
 
     res.json({
       token,
@@ -1019,13 +1118,13 @@ async function startServer() {
   });
 
   // Auth: Change Password (Mainly for Super Admin first-login force password change)
-  app.post('/api/auth/change-password', authenticateToken, (req: any, res) => {
+  app.post('/api/auth/change-password', authenticateToken, async (req: any, res) => {
     const { currentPassword, newPassword } = req.body;
     if (!newPassword) {
       return res.status(400).json({ message: 'New password is required.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const userIndex = dbData.users.findIndex(u => u.id === req.user.id);
     if (userIndex === -1) {
       return res.status(404).json({ message: 'User not found.' });
@@ -1047,14 +1146,14 @@ async function startServer() {
     user.passwordHash = bcryptjs.hashSync(newPassword, 10);
     user.isFirstLogin = false;
     user.activeSessions = []; // Invalidate all active sessions to force re-login
-    writeDb(dbData);
+    await writeDb(dbData);
 
     res.json({ success: true, message: 'Password updated successfully securely in database.' });
   });
 
   // Auth: Me
-  app.get('/api/auth/me', authenticateToken, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.id === req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -1071,13 +1170,13 @@ async function startServer() {
   });
 
   // Auth: Update Profile (Mainly for Super Admin and normal users)
-  app.post('/api/auth/update-profile', authenticateToken, (req: any, res) => {
+  app.post('/api/auth/update-profile', authenticateToken, async (req: any, res) => {
     const { name, email, phone, photoUrl } = req.body;
     if (!name || !email) {
       return res.status(400).json({ message: 'Name and Email are required.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const userIndex = dbData.users.findIndex(u => u.id === req.user.id);
     if (userIndex === -1) {
       return res.status(404).json({ message: 'User not found.' });
@@ -1111,7 +1210,7 @@ async function startServer() {
       });
     }
 
-    writeDb(dbData);
+    await writeDb(dbData);
     console.log(`Database write success: Profile updated for ${user.email}`);
 
     res.json({
@@ -1148,7 +1247,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Email is required.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (!user || user.role !== 'Admin') {
       return res.status(404).json({ message: 'Admin account not found for the provided email.' });
@@ -1252,7 +1351,7 @@ async function startServer() {
   });
 
   // Forgot Password: Reset Password
-  app.post('/api/auth/forgot-password/reset', (req, res) => {
+  app.post('/api/auth/forgot-password/reset', async (req, res) => {
     const { email, newPassword } = req.body;
     if (!email || !newPassword) {
       return res.status(400).json({ message: 'Required fields missing: email, newPassword' });
@@ -1267,7 +1366,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Verification incomplete or recovery session expired.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const userIndex = dbData.users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
     if (userIndex === -1) {
       return res.status(404).json({ message: 'User not found.' });
@@ -1289,7 +1388,7 @@ async function startServer() {
       });
     }
 
-    writeDb(dbData);
+    await writeDb(dbData);
     delete forgotOTPs[email.toLowerCase()];
 
     console.log(`[FORGOT PASSWORD] Password reset success for ${email}`);
@@ -1297,8 +1396,8 @@ async function startServer() {
   });
 
   // Auth: Get Security Info & Session History
-  app.get('/api/auth/security-info', authenticateToken, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/auth/security-info', authenticateToken, async (req: any, res) => {
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.id === req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -1313,36 +1412,36 @@ async function startServer() {
   });
 
   // Auth: Logout From All Devices / Sessions
-  app.post('/api/auth/logout-all-devices', authenticateToken, (req: any, res) => {
-    const dbData = readDb();
+  app.post('/api/auth/logout-all-devices', authenticateToken, async (req: any, res) => {
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.id === req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     user.activeSessions = []; // Clears all sessions
-    writeDb(dbData);
+    await writeDb(dbData);
 
     res.json({ success: true, message: 'Successfully logged out from all sessions on other devices.' });
   });
 
   // Auth: Reset Active Sessions
-  app.post('/api/auth/reset-sessions', authenticateToken, (req: any, res) => {
-    const dbData = readDb();
+  app.post('/api/auth/reset-sessions', authenticateToken, async (req: any, res) => {
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.id === req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     user.activeSessions = []; // Clears all sessions
-    writeDb(dbData);
+    await writeDb(dbData);
 
     res.json({ success: true, message: 'All active sessions reset successfully. All devices forced to re-login.' });
   });
 
   // Admin: Export Members Database to CSV
-  app.get('/api/admin/export-members', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/admin/export-members', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     const activeUsers = dbData.users.filter(u => !u.deleted);
     
     let csv = 'ID,Name,Email,Role,Phone,Institution,Department,Status,Created At\n';
@@ -1363,7 +1462,7 @@ async function startServer() {
   });
 
   // Admin: Download CSV templates for Student/Faculty Bulk Import
-  app.get('/api/admin/download-template/:type', authenticateToken, requireAdmin, (req, res) => {
+  app.get('/api/admin/download-template/:type', authenticateToken, requireAdmin, async (req, res) => {
     const { type } = req.params;
     let headers = '';
     let filename = '';
@@ -1382,8 +1481,8 @@ async function startServer() {
   });
 
   // Assets: Get all
-  app.get('/api/assets', (req, res) => {
-    const dbData = readDb();
+  app.get('/api/assets', async (req, res) => {
+    const dbData = await readDb();
     const assetsWithStatus = (dbData.assets || []).map(a => ({
       ...a,
       status: a.status || 'Active',
@@ -1395,9 +1494,9 @@ async function startServer() {
   });
 
   // Assets: Get single by ID
-  app.get('/api/assets/:id', (req, res) => {
+  app.get('/api/assets/:id', async (req, res) => {
     const { id } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const asset = (dbData.assets || []).find(a => a.id === id);
     if (!asset) {
       return res.status(404).json({ message: 'Asset not found.' });
@@ -1428,7 +1527,7 @@ async function startServer() {
   };
 
   // Assets: Create new (Admin only)
-  app.post('/api/assets', authenticateToken, requireAdmin, (req: any, res) => {
+  app.post('/api/assets', authenticateToken, requireAdmin, async (req: any, res) => {
     const { name, coordinate, category, institution, energyUsage, waterUsage, wasteGenerated, description,
       treeCount, greenCoverArea, carbonAbsorptionRate, annualCarbonAbsorption,
       thumbnailUrl, galleryUrls, panoramaUrl, streetViewUrl, thumbnail, gallery, panorama,
@@ -1463,7 +1562,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Power Rating (Watts) must be 0 or more.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     
     const energy = energyUsage !== undefined ? Math.max(0, Number(energyUsage)) : 0;
     const water = waterUsage !== undefined ? Math.max(0, Number(waterUsage)) : 0;
@@ -1534,19 +1633,19 @@ async function startServer() {
 
     if (!dbData.assets) dbData.assets = [];
     dbData.assets.push(newAsset);
-    writeDb(dbData);
+    await writeDb(dbData);
     res.status(201).json(newAsset);
   });
 
   // Assets: Update sustainability stats & details (Admin only)
-  app.patch('/api/assets/:id', authenticateToken, requireAdmin, (req: any, res) => {
+  app.patch('/api/assets/:id', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
     const { name, category, institution, energyUsage, waterUsage, wasteGenerated, description, status,
       treeCount, greenCoverArea, carbonAbsorptionRate, annualCarbonAbsorption, coordinate,
       thumbnailUrl, galleryUrls, panoramaUrl, streetViewUrl, thumbnail, gallery, panorama,
       quantity, locationBlock, powerRating, usageHours, fuelConsumption, treeSpecies } = req.body;
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const assetIndex = dbData.assets.findIndex(a => a.id === id);
 
     if (assetIndex === -1) {
@@ -1662,15 +1761,15 @@ async function startServer() {
     asset.carbonFootprint = calculateAssetDailyFootprint(asset);
     asset.greenScore = calculateAssetGreenScore(asset);
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json(asset);
   });
 
   // Assets: Delete (Admin only) - True soft delete for audit & dynamic twin integrity
-  app.delete('/api/assets/:id', authenticateToken, requireAdmin, (req: any, res) => {
+  app.delete('/api/assets/:id', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
     console.log(`[DELETE ASSET] Admin requesting soft-deletion of asset ID: ${id}`);
-    const dbData = readDb();
+    const dbData = await readDb();
     const assetIndex = dbData.assets.findIndex(a => a.id === id);
     if (assetIndex === -1) {
       console.warn(`[DELETE ASSET] Asset ID: ${id} not found in database.`);
@@ -1691,18 +1790,18 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     console.log(`[DELETE ASSET] Changes saved to db.json successfully.`);
     res.json({ success: true, message: 'Asset status set to Inactive.', asset });
   });
 
   // Assets: Media upload endpoints (Admin only)
-  app.post('/api/assets/:id/upload/thumbnail', authenticateToken, requireAdmin, upload.single('file'), (req: any, res) => {
+  app.post('/api/assets/:id/upload/thumbnail', authenticateToken, requireAdmin, upload.single('file'), async (req: any, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded or invalid file type.' });
     }
     const { id } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const asset = dbData.assets.find(a => a.id === id);
     if (!asset) {
       return res.status(404).json({ message: 'Asset not found.' });
@@ -1721,16 +1820,16 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, fileUrl, asset });
   });
 
-  app.post('/api/assets/:id/upload/panorama', authenticateToken, requireAdmin, upload.single('file'), (req: any, res) => {
+  app.post('/api/assets/:id/upload/panorama', authenticateToken, requireAdmin, upload.single('file'), async (req: any, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded or invalid file type.' });
     }
     const { id } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const asset = dbData.assets.find(a => a.id === id);
     if (!asset) {
       return res.status(404).json({ message: 'Asset not found.' });
@@ -1749,16 +1848,16 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, fileUrl, asset });
   });
 
-  app.post('/api/assets/:id/upload/gallery', authenticateToken, requireAdmin, upload.single('file'), (req: any, res) => {
+  app.post('/api/assets/:id/upload/gallery', authenticateToken, requireAdmin, upload.single('file'), async (req: any, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded or invalid file type.' });
     }
     const { id } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const asset = dbData.assets.find(a => a.id === id);
     if (!asset) {
       return res.status(404).json({ message: 'Asset not found.' });
@@ -1778,13 +1877,13 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, fileUrl, asset });
   });
 
   // Carbon Factors: GET active factors
-  app.get('/api/carbon-factors', (req, res) => {
-    const dbData = readDb();
+  app.get('/api/carbon-factors', async (req, res) => {
+    const dbData = await readDb();
     res.json(dbData.carbonFactors || {
       electricity: 0.82,
       diesel: 2.68,
@@ -1796,9 +1895,9 @@ async function startServer() {
   });
 
   // Carbon Factors: POST to update active factors (Admin only)
-  app.post('/api/carbon-factors', authenticateToken, requireAdmin, (req: any, res) => {
+  app.post('/api/carbon-factors', authenticateToken, requireAdmin, async (req: any, res) => {
     const { electricity, diesel, petrol, lpg, waste, treeAbsorption } = req.body;
-    const dbData = readDb();
+    const dbData = await readDb();
     dbData.carbonFactors = {
       electricity: electricity !== undefined ? Number(electricity) : 0.82,
       diesel: diesel !== undefined ? Number(diesel) : 2.68,
@@ -1828,13 +1927,13 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json(dbData.carbonFactors);
   });
 
   // Users: Get all (Admin only)
-  app.get('/api/users', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/users', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     const safeUsers = dbData.users.map(u => ({
       id: u.id,
       email: u.email,
@@ -1854,7 +1953,7 @@ async function startServer() {
   });
 
   // Users: Create new (Admin only)
-  app.post('/api/users', authenticateToken, requireAdmin, (req: any, res) => {
+  app.post('/api/users', authenticateToken, requireAdmin, async (req: any, res) => {
     const { email, password, name, role, phone, institution, department, status } = req.body;
     if (!email || !password || !name || !role) {
       return res.status(400).json({ message: 'Required fields missing: email, password, name, role' });
@@ -1863,7 +1962,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Only one Super Admin account can exist.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const existingUser = dbData.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered.' });
@@ -1894,7 +1993,7 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.status(201).json({
       id: newUser.id,
       email: newUser.email,
@@ -1909,11 +2008,11 @@ async function startServer() {
   });
 
   // Users: Edit (Admin only)
-  app.patch('/api/users/:id', authenticateToken, requireAdmin, (req: any, res) => {
+  app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
     const { name, email, role, password, phone, institution, department, status } = req.body;
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const userIndex = dbData.users.findIndex(u => u.id === id);
     if (userIndex === -1) {
       return res.status(404).json({ message: 'User not found.' });
@@ -1963,7 +2062,7 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({
       id: user.id,
       email: user.email,
@@ -1978,10 +2077,10 @@ async function startServer() {
   });
 
   // Users: Delete (Admin only) - SOFT DELETE
-  app.delete('/api/users/:id', authenticateToken, requireAdmin, (req: any, res) => {
+  app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
     console.log(`Delete clicked: Admin requesting deletion of user ID: ${id}`);
-    const dbData = readDb();
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.id === id);
     if (!user) {
       console.warn(`[DELETE USER] User ID: ${id} not found in database.`);
@@ -2007,16 +2106,16 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     console.log(`[DELETE USER] Changes saved to db.json successfully.`);
     res.json({ success: true, message: 'User deleted successfully.' });
   });
 
   // Users: Restore (Admin only)
-  app.post('/api/users/:id/restore', authenticateToken, requireAdmin, (req: any, res) => {
+  app.post('/api/users/:id/restore', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
     console.log(`Restore clicked: Admin requesting restore of user ID: ${id}`);
-    const dbData = readDb();
+    const dbData = await readDb();
     const user = dbData.users.find(u => u.id === id);
     if (!user) {
       console.warn(`[RESTORE USER] User ID: ${id} not found in database.`);
@@ -2038,7 +2137,7 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, message: 'User restored successfully.' });
   });
 
@@ -2055,7 +2154,7 @@ async function startServer() {
     }
 
     const cleanId = id.trim().toLowerCase();
-    const dbData = readDb();
+    const dbData = await readDb();
 
     let recordFound: any = null;
     let email = '';
@@ -2173,7 +2272,7 @@ async function startServer() {
   });
 
   // Complete verified registration via OTP and password creation
-  app.post('/api/auth/complete-registration', (req, res) => {
+  app.post('/api/auth/complete-registration', async (req, res) => {
     const { role, id, otp, password } = req.body;
     if (!role || !id || !otp || !password) {
       return res.status(400).json({ message: 'All fields (role, id, otp, password) are required.' });
@@ -2205,7 +2304,7 @@ async function startServer() {
       return res.status(400).json({ message: 'The verification OTP is incorrect. Please check and try again.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     
     // Check again to avoid email conflicts
     const existingUser = dbData.users.find(u => u.email.toLowerCase() === otpData.email.toLowerCase());
@@ -2249,7 +2348,7 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     delete activeOTPs[cleanId];
 
     const token = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role, name: newUser.name }, JWT_SECRET, { expiresIn: '7d' });
@@ -2270,8 +2369,8 @@ async function startServer() {
   });
 
   // Admin: Get all imported Student & Faculty verification database
-  app.get('/api/admin/imported-members', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/admin/imported-members', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     res.json({
       students: dbData.importedStudents || [],
       faculty: dbData.importedFaculty || []
@@ -2313,7 +2412,7 @@ async function startServer() {
         return res.status(400).json({ message: 'The uploaded file is empty or formatted incorrectly.' });
       }
 
-      const dbData = readDb();
+      const dbData = await readDb();
       if (!dbData.importedStudents) dbData.importedStudents = [];
 
       let importedCount = 0;
@@ -2373,7 +2472,7 @@ async function startServer() {
         timestamp: new Date().toISOString()
       });
 
-      writeDb(dbData);
+      await writeDb(dbData);
       
       try { fs.unlinkSync(req.file.path); } catch (e) {}
 
@@ -2425,7 +2524,7 @@ async function startServer() {
         return res.status(400).json({ message: 'The uploaded file is empty or formatted incorrectly.' });
       }
 
-      const dbData = readDb();
+      const dbData = await readDb();
       if (!dbData.importedFaculty) dbData.importedFaculty = [];
 
       let importedCount = 0;
@@ -2483,7 +2582,7 @@ async function startServer() {
         timestamp: new Date().toISOString()
       });
 
-      writeDb(dbData);
+      await writeDb(dbData);
       
       try { fs.unlinkSync(req.file.path); } catch (e) {}
 
@@ -2501,9 +2600,9 @@ async function startServer() {
   });
 
   // Admin: Delete a single imported student record
-  app.delete('/api/admin/imported-students/:registerNumber', authenticateToken, requireAdmin, (req: any, res) => {
+  app.delete('/api/admin/imported-students/:registerNumber', authenticateToken, requireAdmin, async (req: any, res) => {
     const { registerNumber } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const initialLen = dbData.importedStudents?.length || 0;
     dbData.importedStudents = (dbData.importedStudents || []).filter(s => s.registerNumber.toUpperCase() !== registerNumber.toUpperCase());
     
@@ -2515,16 +2614,16 @@ async function startServer() {
         action: `Super Admin deleted student verification record: ${registerNumber.toUpperCase()}`,
         timestamp: new Date().toISOString()
       });
-      writeDb(dbData);
+      await writeDb(dbData);
       return res.json({ success: true, message: 'Student verification record removed.' });
     }
     res.status(404).json({ message: 'Student record not found.' });
   });
 
   // Admin: Delete a single imported faculty record
-  app.delete('/api/admin/imported-faculty/:facultyId', authenticateToken, requireAdmin, (req: any, res) => {
+  app.delete('/api/admin/imported-faculty/:facultyId', authenticateToken, requireAdmin, async (req: any, res) => {
     const { facultyId } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const initialLen = dbData.importedFaculty?.length || 0;
     dbData.importedFaculty = (dbData.importedFaculty || []).filter(f => f.facultyId.toUpperCase() !== facultyId.toUpperCase());
     
@@ -2536,15 +2635,15 @@ async function startServer() {
         action: `Super Admin deleted faculty verification record: ${facultyId.toUpperCase()}`,
         timestamp: new Date().toISOString()
       });
-      writeDb(dbData);
+      await writeDb(dbData);
       return res.json({ success: true, message: 'Faculty verification record removed.' });
     }
     res.status(404).json({ message: 'Faculty record not found.' });
   });
 
   // Admin: Clear all imported student records
-  app.post('/api/admin/clear-imported-students', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.post('/api/admin/clear-imported-students', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     dbData.importedStudents = [];
     dbData.auditLogs.unshift({
       id: 'aud-' + Math.random().toString(36).substring(2, 9),
@@ -2553,13 +2652,13 @@ async function startServer() {
       action: 'Super Admin cleared all imported Student verification database entries.',
       timestamp: new Date().toISOString()
     });
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, message: 'All Student records cleared successfully.' });
   });
 
   // Admin: Clear all imported faculty records
-  app.post('/api/admin/clear-imported-faculty', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.post('/api/admin/clear-imported-faculty', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     dbData.importedFaculty = [];
     dbData.auditLogs.unshift({
       id: 'aud-' + Math.random().toString(36).substring(2, 9),
@@ -2568,24 +2667,24 @@ async function startServer() {
       action: 'Super Admin cleared all imported Faculty verification database entries.',
       timestamp: new Date().toISOString()
     });
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, message: 'All Faculty records cleared successfully.' });
   });
 
   // Reports: Get all
-  app.get('/api/reports', (req, res) => {
-    const dbData = readDb();
+  app.get('/api/reports', async (req, res) => {
+    const dbData = await readDb();
     res.json(dbData.reports);
   });
 
   // Reports: Create new (Anyone can submit, so no authenticateToken middleware needed!)
-  app.post('/api/reports', (req: any, res) => {
+  app.post('/api/reports', async (req: any, res) => {
     const { title, description, location, photoUrl, reporterName, reporterRole } = req.body;
     if (!title || !description || !location) {
       return res.status(400).json({ message: 'Title, description, and location asset are required.' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const newReport: IssueReport = {
       id: 'rep-' + Math.random().toString(36).substring(2, 9),
       title,
@@ -2599,12 +2698,12 @@ async function startServer() {
     };
 
     dbData.reports.unshift(newReport);
-    writeDb(dbData);
+    await writeDb(dbData);
     res.status(201).json(newReport);
   });
 
   // Reports: Update Status (Admin only)
-  app.patch('/api/reports/:id/status', authenticateToken, requireAdmin, (req: any, res) => {
+  app.patch('/api/reports/:id/status', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
@@ -2612,7 +2711,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Status is required' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const reportIndex = dbData.reports.findIndex(r => r.id === id);
 
     if (reportIndex === -1) {
@@ -2620,20 +2719,20 @@ async function startServer() {
     }
 
     dbData.reports[reportIndex].status = status as ReportStatus;
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json(dbData.reports[reportIndex]);
   });
 
   // Reports: Delete (Admin only)
-  app.delete('/api/reports/:id', authenticateToken, requireAdmin, (req: any, res) => {
+  app.delete('/api/reports/:id', authenticateToken, requireAdmin, async (req: any, res) => {
     const { id } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     const initialLength = dbData.reports.length;
     dbData.reports = dbData.reports.filter(r => r.id !== id);
     if (dbData.reports.length === initialLength) {
       return res.status(404).json({ message: 'Report not found.' });
     }
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, message: 'Report deleted successfully.' });
   });
 
@@ -2691,14 +2790,14 @@ async function startServer() {
   }
 
   // AI Recommendations: Get all stored
-  app.get('/api/ai/recommendations', (req, res) => {
-    const dbData = readDb();
+  app.get('/api/ai/recommendations', async (req, res) => {
+    const dbData = await readDb();
     res.json(dbData.recommendations);
   });
 
   // AI Recommendation Trigger: Call Gemini Live API Proxy or generate data-driven recommendations
   app.post('/api/ai/insights', authenticateToken, async (req: any, res) => {
-    const dbData = readDb();
+    const dbData = await readDb();
     const activeAssets = (dbData.assets || []).filter(a => (a.status || 'Active') === 'Active');
     
     // Check if the developer provided their Gemini API key
@@ -2714,7 +2813,7 @@ async function startServer() {
 
       if (filteredNewRecs.length > 0) {
         dbData.recommendations.unshift(...filteredNewRecs);
-        writeDb(dbData);
+        await writeDb(dbData);
       }
 
       return res.json({
@@ -2761,7 +2860,7 @@ async function startServer() {
       newRec.createdAt = new Date().toISOString();
 
       dbData.recommendations.unshift(newRec);
-      writeDb(dbData);
+      await writeDb(dbData);
 
       res.json({
         message: 'Gemini AI Recommendation generated successfully!',
@@ -2778,7 +2877,7 @@ async function startServer() {
 
       if (filteredNewRecs.length > 0) {
         dbData.recommendations.unshift(...filteredNewRecs);
-        writeDb(dbData);
+        await writeDb(dbData);
       }
 
       res.json({
@@ -2790,18 +2889,18 @@ async function startServer() {
   });
 
   // --- Audit Logs (Admin only) ---
-  app.get('/api/audit-logs', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/audit-logs', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     res.json(dbData.auditLogs || []);
   });
 
   // --- Sustainability Logs APIs (Admin and Faculty) ---
-  app.get('/api/sustainability/logs', authenticateToken, requireAdminOrFaculty, (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/sustainability/logs', authenticateToken, requireAdminOrFaculty, async (req: any, res) => {
+    const dbData = await readDb();
     res.json(dbData.sustainabilityLogs || []);
   });
 
-  app.post('/api/sustainability/logs', authenticateToken, requireAdminOrFaculty, (req: any, res) => {
+  app.post('/api/sustainability/logs', authenticateToken, requireAdminOrFaculty, async (req: any, res) => {
     const { 
       buildingId, 
       assetId,
@@ -2836,7 +2935,7 @@ async function startServer() {
       return res.status(400).json({ message: 'Required fields missing: assetId and date' });
     }
 
-    const dbData = readDb();
+    const dbData = await readDb();
     const asset = dbData.assets.find(a => a.id === targetAssetId);
     if (!asset) {
       return res.status(404).json({ message: 'Building/Asset coordinate index not found.' });
@@ -2973,13 +3072,13 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.status(201).json(newLog);
   });
 
-  app.delete('/api/sustainability/logs/:id', authenticateToken, requireAdminOrFaculty, (req: any, res) => {
+  app.delete('/api/sustainability/logs/:id', authenticateToken, requireAdminOrFaculty, async (req: any, res) => {
     const { id } = req.params;
-    const dbData = readDb();
+    const dbData = await readDb();
     if (!dbData.sustainabilityLogs) dbData.sustainabilityLogs = [];
     const logIndex = dbData.sustainabilityLogs.findIndex(l => l.id === id);
     if (logIndex === -1) {
@@ -2997,13 +3096,13 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json({ success: true, message: 'Sustainability log record removed.' });
   });
 
   // --- Sustainability Analytics API (All roles) ---
-  app.get('/api/sustainability/analytics', (req: any, res) => {
-    const dbData = readDb();
+  app.get('/api/sustainability/analytics', async (req: any, res) => {
+    const dbData = await readDb();
     const logs = dbData.sustainabilityLogs || [];
     
     const today = new Date();
@@ -3190,14 +3289,14 @@ async function startServer() {
   });
 
   // CMS Config: GET configuration
-  app.get('/api/cms-config', (req, res) => {
-    const dbData = readDb();
+  app.get('/api/cms-config', async (req, res) => {
+    const dbData = await readDb();
     res.json(dbData.cmsConfig || DEFAULT_CMS_CONFIG);
   });
 
   // CMS Config: POST to update configuration (Admin only)
-  app.post('/api/cms-config', authenticateToken, requireAdmin, (req: any, res) => {
-    const dbData = readDb();
+  app.post('/api/cms-config', authenticateToken, requireAdmin, async (req: any, res) => {
+    const dbData = await readDb();
     dbData.cmsConfig = req.body;
 
     // Write Audit Log
@@ -3209,7 +3308,7 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
 
-    writeDb(dbData);
+    await writeDb(dbData);
     res.json(dbData.cmsConfig);
   });
 
@@ -3223,7 +3322,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', async (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
