@@ -160,20 +160,18 @@ export default function IssueReporter({
             Log maintenance faults, water leakages, and energy leaks directly onto the campus twin.
           </p>
         </div>
-        {user && user.role === 'Admin' && (
-          <motion.button
-            whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setShowNewForm(!showNewForm);
-              if (quickReportLocation) setQuickReportLocation('');
-            }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-emerald-500/20 cursor-pointer self-start md:self-auto border-none"
-          >
-            <Plus size={16} />
-            Report Campus Issue
-          </motion.button>
-        )}
+        <motion.button
+          whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            setShowNewForm(!showNewForm);
+            if (quickReportLocation) setQuickReportLocation('');
+          }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-emerald-500/20 cursor-pointer self-start md:self-auto border-none"
+        >
+          <Plus size={16} />
+          Report Campus Issue
+        </motion.button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="reports-grid">

@@ -420,6 +420,15 @@ export default function CampusMap({ assets, setActiveTab, setQuickReportLocation
       }
     });
 
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      markersRef.current = {};
+      userMarkerRef.current = null;
+      routingControlRef.current = null;
+    };
   }, [filteredAssets]);
 
   // Handle programmatically changing tiles

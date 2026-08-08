@@ -40,6 +40,11 @@ const TAB_PATH_MAPPING: Record<string, string> = {
 };
 
 const PATH_TAB_MAPPING: Record<string, string> = {
+  '/admin-dashboard': 'admin-dashboard',
+  '/admin-assets': 'admin-assets',
+  '/admin-users': 'admin-users',
+  '/admin-settings': 'admin-settings',
+  '/admin-logger': 'sustainability-logger',
   '/': 'dashboard',
   '/map': 'map',
   '/sustainability': 'sustainability',
@@ -456,7 +461,8 @@ export default function App() {
 
   const [activeTab, setActiveTabState] = useState<string>(() => {
     const pathname = window.location.pathname;
-    return PATH_TAB_MAPPING[pathname] || 'dashboard';
+    const normalized = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    return PATH_TAB_MAPPING[normalized] || 'dashboard';
   });
 
   const setActiveTab = (tab: string) => {
@@ -536,18 +542,27 @@ export default function App() {
   useEffect(() => {
     if (!isDataLoaded) return;
 
-    const currentPath = location.pathname;
+    const rawPath = location.pathname;
+    const currentPath = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
     const targetTab = PATH_TAB_MAPPING[currentPath] || 'dashboard';
-    const adminTabs = ['admin-dashboard', 'admin-settings', 'admin-users', 'admin-assets', 'sustainability-logger'];
+    const adminOnlyTabs = ['admin-dashboard', 'admin-settings', 'admin-users', 'admin-assets'];
+    const adminOrFacultyTabs = ['sustainability-logger'];
 
     let hasPermission = true;
     let shouldRedirectToLogin = false;
 
-    if (adminTabs.includes(targetTab)) {
+    if (adminOnlyTabs.includes(targetTab)) {
       if (!user) {
         hasPermission = false;
         shouldRedirectToLogin = true;
       } else if (user.role !== 'Admin') {
+        hasPermission = false;
+      }
+    } else if (adminOrFacultyTabs.includes(targetTab)) {
+      if (!user) {
+        hasPermission = false;
+        shouldRedirectToLogin = true;
+      } else if (user.role !== 'Admin' && user.role !== 'Faculty') {
         hasPermission = false;
       }
     }
@@ -776,6 +791,44 @@ export default function App() {
     setRecommendations(data.recommendations);
   };
 
+  // Protected Admin Route Guard Component
+  const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+    useEffect(() => {
+      if (isDataLoaded) {
+        if (!token || !user) {
+          setActiveTab('admin-login');
+        } else if (user.role !== 'Admin') {
+          alert('Access Denied - Super Admin privileges required.');
+          setActiveTab('dashboard');
+        }
+      }
+    }, [isDataLoaded, token, user]);
+
+    if (!isDataLoaded || !token || !user || user.role !== 'Admin') {
+      return null;
+    }
+    return <>{children}</>;
+  };
+
+  // Protected Admin or Faculty Route Guard Component
+  const ProtectedAdminOrFacultyRoute = ({ children }: { children: React.ReactNode }) => {
+    useEffect(() => {
+      if (isDataLoaded) {
+        if (!token || !user) {
+          setActiveTab('admin-login');
+        } else if (user.role !== 'Admin' && user.role !== 'Faculty') {
+          alert('Access Denied - Faculty or Super Admin privileges required.');
+          setActiveTab('dashboard');
+        }
+      }
+    }, [isDataLoaded, token, user]);
+
+    if (!isDataLoaded || !token || !user || (user.role !== 'Admin' && user.role !== 'Faculty')) {
+      return null;
+    }
+    return <>{children}</>;
+  };
+
   const renderActiveView = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -803,15 +856,14 @@ export default function App() {
           />
         );
       case 'sustainability-logger':
-        if (!user || user.role !== 'Admin') {
-          return <div className="p-8 text-[#475569] font-mono text-xs">Access Denied. Admin privilege required.</div>;
-        }
         return (
-          <DailySustainabilityLogger 
-            token={token}
-            assets={assets}
-            onLogAdded={fetchAppData}
-          />
+          <ProtectedAdminOrFacultyRoute>
+            <DailySustainabilityLogger 
+              token={token}
+              assets={assets}
+              onLogAdded={fetchAppData}
+            />
+          </ProtectedAdminOrFacultyRoute>
         );
       case 'reports':
         return (
@@ -839,39 +891,39 @@ export default function App() {
       case 'contact':
         return <ContactView cmsConfig={cmsConfig} />;
       case 'admin-dashboard':
-        if (!user || user.role !== 'Admin') {
-          return <div className="p-8 text-[#475569] font-mono text-xs">Access Denied. Admin privilege required.</div>;
-        }
-        return <AdminDashboardView setActiveTab={setActiveTab} />;
-      case 'admin-users':
-        if (!user || user.role !== 'Admin') {
-          return <div className="p-8 text-[#475569] font-mono text-xs">Access Denied. Admin privilege required.</div>;
-        }
-        return <UserManagement token={token} />;
-      case 'admin-settings':
-        if (!user || user.role !== 'Admin') {
-          return <div className="p-8 text-[#475569] font-mono text-xs">Access Denied. Admin privilege required.</div>;
-        }
         return (
-          <AdminSettings
-            token={token}
-            user={user}
-            onUserUpdate={(updatedUser) => setUser(updatedUser)}
-            onLogout={handleLogout}
-            cmsConfig={cmsConfig}
-            onCmsUpdate={handleCmsUpdate}
-          />
+          <ProtectedAdminRoute>
+            <AdminDashboardView setActiveTab={setActiveTab} />
+          </ProtectedAdminRoute>
+        );
+      case 'admin-users':
+        return (
+          <ProtectedAdminRoute>
+            <UserManagement token={token} />
+          </ProtectedAdminRoute>
+        );
+      case 'admin-settings':
+        return (
+          <ProtectedAdminRoute>
+            <AdminSettings
+              token={token}
+              user={user}
+              onUserUpdate={(updatedUser) => setUser(updatedUser)}
+              onLogout={handleLogout}
+              cmsConfig={cmsConfig}
+              onCmsUpdate={handleCmsUpdate}
+            />
+          </ProtectedAdminRoute>
         );
       case 'admin-assets':
-        if (!user || user.role !== 'Admin') {
-          return <div className="p-8 text-[#475569] font-mono text-xs">Access Denied. Admin privilege required.</div>;
-        }
         return (
-          <AssetManagement 
-            token={token} 
-            assets={assets} 
-            onAssetsChanged={fetchAppData} 
-          />
+          <ProtectedAdminRoute>
+            <AssetManagement 
+              token={token} 
+              assets={assets} 
+              onAssetsChanged={fetchAppData} 
+            />
+          </ProtectedAdminRoute>
         );
       case 'virtual-tour':
         return (
@@ -928,7 +980,7 @@ export default function App() {
 
   const isAdminTab = activeTab.startsWith('admin-') || activeTab === 'sustainability-logger';
 
-  if (isAdminTab && user?.role === 'Admin') {
+  if (isAdminTab && (user?.role === 'Admin' || (activeTab === 'sustainability-logger' && user?.role === 'Faculty'))) {
     return (
       <div className="min-h-screen bg-[#F7F9FC] font-sans text-[#0F172A] flex flex-col md:flex-row relative">
         {showForcePasswordChange && (

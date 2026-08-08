@@ -116,50 +116,55 @@ export default function DailySustainabilityLogger({
   const liveCalculations = useMemo(() => {
     let e = 0, w = 0, waste = 0, trans = 0, carb = 0;
 
-    const fCons = parseFloat(fuelConsumed) || 0;
-    const evChg = parseFloat(evCharging) || 0;
+    const safeFloat = (val: string) => {
+      const parsed = parseFloat(val);
+      return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    };
+
+    const fCons = safeFloat(fuelConsumed);
+    const evChg = safeFloat(evCharging);
     if (fuelType === 'Diesel') trans = fCons * 2.68;
     else if (fuelType === 'Petrol') trans = fCons * 2.31;
     else if (fuelType === 'CNG') trans = fCons * 2.74;
     else if (fuelType === 'Electric Vehicle' || fuelType === 'Electric') trans = evChg * 0.82;
 
     if (formMode === 'Academic') {
-      const pW = parseFloat(paperWaste) || 0;
-      const plW = parseFloat(plasticWaste) || 0;
-      const eW = parseFloat(eWaste) || 0;
-      const compE = parseFloat(computerLabEnergy) || 0;
-      const lightE = parseFloat(lightingEnergy) || 0;
-      const acE = parseFloat(acEnergy) || 0;
+      const pW = safeFloat(paperWaste);
+      const plW = safeFloat(plasticWaste);
+      const eW = safeFloat(eWaste);
+      const compE = safeFloat(computerLabEnergy);
+      const lightE = safeFloat(lightingEnergy);
+      const acE = safeFloat(acEnergy);
       e = compE + lightE + acE;
-      w = parseFloat(waterUsage) || 0;
+      w = safeFloat(waterUsage);
       waste = pW + plW + eW;
       carb = e * 0.82 + w * 0.0003 + pW * 1.5 + plW * 3.0 + eW * 5.0;
     } else if (formMode === 'Canteen') {
-      const fW = parseFloat(foodWaste) || 0;
-      const lpg = parseFloat(lpgConsumption) || 0;
-      const plW = parseFloat(plasticWaste) || 0;
-      e = parseFloat(energyUsage) || (lpg * 13.9);
-      w = parseFloat(waterUsage) || 0;
+      const fW = safeFloat(foodWaste);
+      const lpg = safeFloat(lpgConsumption);
+      const plW = safeFloat(plasticWaste);
+      e = safeFloat(energyUsage) || (lpg * 13.9);
+      w = safeFloat(waterUsage);
       waste = fW + plW;
       carb = e * 0.82 + w * 0.0003 + lpg * 2.984 + fW * 1.9 + plW * 3.0;
     } else if (formMode === 'Hostel') {
-      const fW = parseFloat(foodWaste) || 0;
-      e = parseFloat(electricityUsage) || 0;
-      w = parseFloat(waterUsage) || 0;
+      const fW = safeFloat(foodWaste);
+      e = safeFloat(electricityUsage);
+      w = safeFloat(waterUsage);
       waste = fW;
       carb = e * 0.82 + w * 0.0003 + fW * 1.9;
     } else if (formMode === 'Medical') {
-      const mW = parseFloat(medicalWaste) || 0;
-      const plW = parseFloat(plasticWaste) || 0;
-      e = parseFloat(electricityUsage) || parseFloat(energyUsage) || 0;
-      w = parseFloat(waterUsage) || 0;
+      const mW = safeFloat(medicalWaste);
+      const plW = safeFloat(plasticWaste);
+      e = safeFloat(electricityUsage) || safeFloat(energyUsage);
+      w = safeFloat(waterUsage);
       waste = mW + plW;
       carb = e * 0.82 + w * 0.0003 + mW * 2.5 + plW * 3.0;
     } else if (formMode === 'Dairy') {
-      const elec = parseFloat(electricityUsage) || 0;
-      const watD = parseFloat(waterUsageDairy) || parseFloat(waterUsage) || 0;
-      const animW = parseFloat(animalWaste) || 0;
-      const feedC = parseFloat(feedConsumption) || 0;
+      const elec = safeFloat(electricityUsage);
+      const watD = safeFloat(waterUsageDairy) || safeFloat(waterUsage);
+      const animW = safeFloat(animalWaste);
+      const feedC = safeFloat(feedConsumption);
       e = elec; w = watD; waste = animW;
       carb = elec * 0.82 + watD * 0.0003 + animW * 0.8 + feedC * 0.2;
     } else if (formMode === 'Transport') {
@@ -167,9 +172,9 @@ export default function DailySustainabilityLogger({
       e = evChg;
       carb = trans;
     } else {
-      e = parseFloat(energyUsage) || 0;
-      w = parseFloat(waterUsage) || 0;
-      waste = parseFloat(wasteGenerated) || 0;
+      e = safeFloat(energyUsage);
+      w = safeFloat(waterUsage);
+      waste = safeFloat(wasteGenerated);
       carb = e * 0.82 + w * 0.0003 + waste * 1.9 + trans;
     }
 

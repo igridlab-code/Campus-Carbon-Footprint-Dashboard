@@ -5,7 +5,7 @@
       "email": "indraverseig@gmail.com",
       "name": "Super Admin",
       "role": "Admin",
-      "passwordHash": "$2b$10$C16IFdnPOQg4O/l2ol1TX.jiAwInZTjXYcIezD8JRMrWKcuJy8IQ.",
+      "passwordHash": "$2a$10$Sg.zgNsuTJkLmBqVIKkg.u42TnQ5AaqwxcFikA2Dpg75KyfxbchzK",
       "isFirstLogin": false,
       "phone": "+91 99999 88888",
       "institution": "Common Facilities",
@@ -13,8 +13,56 @@
       "status": "Active",
       "createdAt": "2026-06-12T09:26:22.095Z",
       "failedLoginAttempts": 0,
-      "lastLogin": "2026-08-01T11:05:04.853Z",
+      "lastLogin": "2026-08-08T11:12:08.690Z",
       "loginHistory": [
+        {
+          "id": "login-ejn23nd",
+          "timestamp": "2026-08-08T11:12:08.690Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "login-35x18k2",
+          "timestamp": "2026-08-08T11:11:00.893Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "login-33mms12",
+          "timestamp": "2026-08-08T11:10:58.333Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "login-9p9t0dc",
+          "timestamp": "2026-08-08T10:57:34.625Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
+        {
+          "id": "login-hhatb77",
+          "timestamp": "2026-08-08T10:56:56.311Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
+        {
+          "id": "login-e90nsgs",
+          "timestamp": "2026-08-08T10:56:22.765Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
+        {
+          "id": "login-6fnatnl",
+          "timestamp": "2026-08-08T10:54:58.192Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
+        {
+          "id": "login-p5ovrvq",
+          "timestamp": "2026-08-08T08:06:55.778Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
         {
           "id": "login-tljs096",
           "timestamp": "2026-08-01T11:05:04.853Z",
@@ -26,58 +74,38 @@
           "timestamp": "2026-07-31T06:34:49.466Z",
           "ip": "125.21.203.106",
           "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
-        },
-        {
-          "id": "login-2c57d8t",
-          "timestamp": "2026-07-31T06:33:51.012Z",
-          "ip": "106.192.170.221",
-          "device": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
-        },
-        {
-          "id": "login-jm50orn",
-          "timestamp": "2026-07-31T06:20:38.768Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "login-c6ux21p",
-          "timestamp": "2026-07-30T11:06:54.780Z",
-          "ip": "103.163.232.118",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "login-n4ohd9o",
-          "timestamp": "2026-07-30T10:46:29.175Z",
-          "ip": "103.163.232.118",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "login-2nn9oy2",
-          "timestamp": "2026-07-30T10:24:44.968Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
-        },
-        {
-          "id": "login-66f8fyz",
-          "timestamp": "2026-07-30T09:50:04.721Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
-        },
-        {
-          "id": "login-vw59tt8",
-          "timestamp": "2026-07-30T09:45:17.904Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
-        },
-        {
-          "id": "login-n7q54sr",
-          "timestamp": "2026-07-30T09:41:13.150Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
         }
       ],
-      "activeSessions": [],
+      "activeSessions": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NjE4NzQ1OCwiZXhwIjoxNzg2MTkxMDU4fQ.gYZvQYPtA-5IZTJHNw6Eggl-ywwrgbsU379FyjuVjRs",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NjE4NzQ2MCwiZXhwIjoxNzg2MTkxMDYwfQ.A7RC2bcb_UUzrV9eq6hXXJvNUJXZIOY7StbEaSQYhQY",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzci1hZG1pbiIsImVtYWlsIjoiaW5kcmF2ZXJzZWlnQGdtYWlsLmNvbSIsInJvbGUiOiJBZG1pbiIsIm5hbWUiOiJTdXBlciBBZG1pbiIsImlhdCI6MTc4NjE4NzUyOCwiZXhwIjoxNzg2MTkxMTI4fQ.lpOUub35yEOHe32baAnQXj-XhyTIo8h1dIgKfQv5DWI"
+      ],
       "failedLoginsHistory": [
+        {
+          "id": "fail-5zt0dey",
+          "timestamp": "2026-08-08T11:07:14.362Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-uk0s23w",
+          "timestamp": "2026-08-08T10:52:50.043Z",
+          "ip": "127.0.0.1",
+          "device": "Unknown Browser"
+        },
+        {
+          "id": "fail-xsjp51a",
+          "timestamp": "2026-08-08T08:03:56.077Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
+        {
+          "id": "fail-0vk5g1u",
+          "timestamp": "2026-08-08T08:03:28.670Z",
+          "ip": "127.0.0.1",
+          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        },
         {
           "id": "fail-fujezfk",
           "timestamp": "2026-08-01T11:03:02.677Z",
@@ -113,30 +141,6 @@
           "timestamp": "2026-08-01T10:59:01.864Z",
           "ip": "127.0.0.1",
           "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-58pcrn1",
-          "timestamp": "2026-08-01T10:45:10.138Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-rdu5nu0",
-          "timestamp": "2026-08-01T10:42:37.203Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-ave1ghl",
-          "timestamp": "2026-08-01T10:41:51.369Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        },
-        {
-          "id": "fail-blmz39a",
-          "timestamp": "2026-07-30T09:49:49.160Z",
-          "ip": "127.0.0.1",
-          "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
         }
       ],
       "photoUrl": ""
@@ -175,6 +179,66 @@
           "device": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
         }
       ]
+    },
+    {
+      "id": "usr-0v5qpnm",
+      "email": "student_1786186369425@indraverse.edu",
+      "name": "Test Student",
+      "role": "Student",
+      "passwordHash": "$2a$10$x/2D98CLXe9nDKuvYzqW4uV0QneXqSWaojmVnQv4ouTDXEO1LkvhO",
+      "isFirstLogin": false,
+      "status": "Active",
+      "createdAt": "2026-08-08T10:52:49.840Z"
+    },
+    {
+      "id": "usr-hyhvx4j",
+      "email": "faculty_1786186369861@indraverse.edu",
+      "name": "Test Faculty",
+      "role": "Faculty",
+      "passwordHash": "$2a$10$9qenN19UBHvSwmv62Pznh.Mdj2tuKD82gowyHurBQAm4b8slwJ5U6",
+      "isFirstLogin": false,
+      "status": "Active",
+      "createdAt": "2026-08-08T10:52:49.947Z"
+    },
+    {
+      "id": "usr-om6pqq9",
+      "email": "student_1786186497856@indraverse.edu",
+      "name": "Test Student",
+      "role": "Student",
+      "passwordHash": "$2a$10$Mq6cjTmKDK1rguZxQgWpfutx2/DNgwi.a1moe6Axdauw4iclAVpLu",
+      "isFirstLogin": false,
+      "status": "Active",
+      "createdAt": "2026-08-08T10:54:57.980Z"
+    },
+    {
+      "id": "usr-kzmbwky",
+      "email": "faculty_1786186497998@indraverse.edu",
+      "name": "Test Faculty",
+      "role": "Faculty",
+      "passwordHash": "$2a$10$IgTi54acMFFHvbqV56GXDewGYY0VRy8hbL4QrWJfXOLk5yhUkN4Ey",
+      "isFirstLogin": false,
+      "status": "Active",
+      "createdAt": "2026-08-08T10:54:58.095Z"
+    },
+    {
+      "id": "usr-dzqvoc0",
+      "email": "student_1786186582407@indraverse.edu",
+      "name": "Test Student",
+      "role": "Student",
+      "passwordHash": "$2a$10$1XqFe5LNwxwN9KgMWpD45.Ox4492Wfx01LgYnYOS7ptxOcXNQrgNK",
+      "isFirstLogin": false,
+      "status": "Active",
+      "createdAt": "2026-08-08T10:56:22.549Z"
+    },
+    {
+      "id": "usr-h8vokej",
+      "email": "faculty_1786186582579@indraverse.edu",
+      "name": "Test Faculty",
+      "role": "Faculty",
+      "passwordHash": "$2a$10$UXKY7ewJq5BDAthh2gj5s.Y53d5d4imX9atf1TWbTRDv3V8Ak4ZSa",
+      "isFirstLogin": false,
+      "status": "Active",
+      "createdAt": "2026-08-08T10:56:22.666Z"
     }
   ],
   "assets": [
@@ -660,9 +724,155 @@
       "gallery": [],
       "panorama": "",
       "streetViewUrl": ""
+    },
+    {
+      "id": "ast-h6t5vu7",
+      "name": "Test Sensor Block",
+      "coordinate": [
+        10.741,
+        78.6385
+      ],
+      "category": "Academic",
+      "institution": "Engineering",
+      "greenScore": 100,
+      "energyUsage": 150,
+      "waterUsage": 500,
+      "wasteGenerated": 10,
+      "carbonFootprint": 0,
+      "description": "Updated QA Description",
+      "status": "Inactive",
+      "quantity": 1,
+      "locationBlock": "",
+      "powerRating": 0,
+      "usageHours": 0,
+      "fuelConsumption": 0,
+      "treeSpecies": "",
+      "carbonAbsorptionRate": 0,
+      "treeCount": 0,
+      "greenCoverArea": 0,
+      "annualCarbonAbsorption": 0,
+      "thumbnailUrl": "",
+      "galleryUrls": [],
+      "panoramaUrl": "",
+      "thumbnail": "",
+      "gallery": [],
+      "panorama": "",
+      "streetViewUrl": ""
+    },
+    {
+      "id": "ast-rwoi51o",
+      "name": "Test Sensor Block",
+      "coordinate": [
+        10.741,
+        78.6385
+      ],
+      "category": "Academic",
+      "institution": "Engineering",
+      "greenScore": 100,
+      "energyUsage": 150,
+      "waterUsage": 500,
+      "wasteGenerated": 10,
+      "carbonFootprint": 0,
+      "description": "Updated QA Description",
+      "status": "Inactive",
+      "quantity": 1,
+      "locationBlock": "",
+      "powerRating": 0,
+      "usageHours": 0,
+      "fuelConsumption": 0,
+      "treeSpecies": "",
+      "carbonAbsorptionRate": 0,
+      "treeCount": 0,
+      "greenCoverArea": 0,
+      "annualCarbonAbsorption": 0,
+      "thumbnailUrl": "",
+      "galleryUrls": [],
+      "panoramaUrl": "",
+      "thumbnail": "",
+      "gallery": [],
+      "panorama": "",
+      "streetViewUrl": ""
+    },
+    {
+      "id": "ast-pmuolek",
+      "name": "Persistent Quad Sensor",
+      "coordinate": [
+        10.742,
+        78.639
+      ],
+      "category": "Academic",
+      "institution": "Engineering",
+      "greenScore": 100,
+      "energyUsage": 220,
+      "waterUsage": 800,
+      "wasteGenerated": 15,
+      "carbonFootprint": 0,
+      "description": "Persistence verification across server restart",
+      "status": "Inactive",
+      "quantity": 1,
+      "locationBlock": "",
+      "powerRating": 0,
+      "usageHours": 0,
+      "fuelConsumption": 0,
+      "treeSpecies": "",
+      "carbonAbsorptionRate": 0,
+      "treeCount": 0,
+      "greenCoverArea": 0,
+      "annualCarbonAbsorption": 0,
+      "thumbnailUrl": "",
+      "galleryUrls": [],
+      "panoramaUrl": "",
+      "thumbnail": "",
+      "gallery": [],
+      "panorama": "",
+      "streetViewUrl": ""
     }
   ],
   "reports": [
+    {
+      "id": "rep-bm02a9c",
+      "title": "Solar Grid Admin Report",
+      "description": "Inverter error block 4",
+      "location": "Engineering Block",
+      "status": "Open",
+      "photoUrl": "https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&auto=format&fit=crop&q=60",
+      "reporterName": "Super Admin",
+      "reporterRole": "Admin",
+      "createdAt": "2026-08-08T10:52:50.164Z"
+    },
+    {
+      "id": "rep-9akc1d9",
+      "title": "AC Issue Faculty Report",
+      "description": "AC temp sensor faulty",
+      "location": "Admin Block",
+      "status": "Open",
+      "photoUrl": "https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&auto=format&fit=crop&q=60",
+      "reporterName": "Dr. Faculty",
+      "reporterRole": "Faculty",
+      "createdAt": "2026-08-08T10:52:50.149Z"
+    },
+    {
+      "id": "rep-gpil4pf",
+      "title": "Broken Light Student Report",
+      "description": "Classroom 101 light broken",
+      "location": "Engineering Block",
+      "status": "Open",
+      "photoUrl": "https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&auto=format&fit=crop&q=60",
+      "reporterName": "Student Reporter",
+      "reporterRole": "Student",
+      "createdAt": "2026-08-08T10:52:50.135Z"
+    },
+    {
+      "id": "rep-sw12iwe",
+      "title": "Water Leak Visitor Report",
+      "description": "Pipe leak near cafeteria",
+      "location": "Main Canteen",
+      "status": "Open",
+      "photoUrl": "https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&auto=format&fit=crop&q=60",
+      "reporterName": "John Visitor",
+      "reporterRole": "Visitor",
+      "createdAt": "2026-08-08T10:52:50.122Z"
+    },
     {
       "id": "rep-1",
       "title": "Water Leakage in Block A",
@@ -687,6 +897,33 @@
     }
   ],
   "recommendations": [
+    {
+      "id": "rec-energy-ph4iz3z",
+      "category": "Energy",
+      "title": "Power Grid Smart Schedule for Engineering Block",
+      "description": "Operational analysis indicates that the Engineering Block (under Engineering) is drawing a heavy energy baseline of 580 kWh/day. We recommend integrating smart sub-metering grids paired with automated HVAC setpoint schedules during non-academic hours.",
+      "savingsPotential": "128 kWh/day (22% savings)",
+      "impactLevel": "High",
+      "createdAt": "2026-08-08T10:54:59.515Z"
+    },
+    {
+      "id": "rec-water-p5b6jjo",
+      "category": "Water",
+      "title": "Acoustic Flow Leak Interception at Hostel Mess",
+      "description": "Live telemetry registers Hostel Mess water usage peaking at 6,000 Litres/day. Retrofitting smart pressure-reducing valves alongside a secondary greywater recovery system can recover non-potable water for irrigation.",
+      "savingsPotential": "1,500 Litres/day (25% recovery)",
+      "impactLevel": "High",
+      "createdAt": "2026-08-08T10:54:59.540Z"
+    },
+    {
+      "id": "rec-waste-0ztld27",
+      "category": "Waste",
+      "title": "Zero-Organic-Refuse Composting at Hostel Mess",
+      "description": "The municipal waste ledger shows Hostel Mess producing 180 kg/day of refuse. Launching an intense organic/food waste source segregation protocol and routing feedstock to the main biogas digestor will eliminate landfill footprint.",
+      "savingsPotential": "81 kg/day (45% landfill diversion)",
+      "impactLevel": "High",
+      "createdAt": "2026-08-08T10:54:59.540Z"
+    },
     {
       "id": "rec-1",
       "category": "Energy",
@@ -11794,6 +12031,41 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "aud-lvgnyvo",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Super Admin recovered account and reset password.",
+      "timestamp": "2026-08-08T11:10:47.794Z"
+    },
+    {
+      "id": "aud-io9a2o4",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Admin soft-deleted asset: Persistent Quad Sensor (Academic).",
+      "timestamp": "2026-08-08T10:57:34.645Z"
+    },
+    {
+      "id": "aud-167zg86",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Admin soft-deleted asset: Test Sensor Block (Academic).",
+      "timestamp": "2026-08-08T10:56:22.933Z"
+    },
+    {
+      "id": "aud-38vkhqz",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Admin soft-deleted asset: Test Sensor Block (Academic).",
+      "timestamp": "2026-08-08T10:54:58.387Z"
+    },
+    {
+      "id": "aud-4fluf4x",
+      "actorEmail": "indraverseig@gmail.com",
+      "actorName": "Super Admin",
+      "action": "Super Admin recovered account and reset password.",
+      "timestamp": "2026-08-08T08:05:44.367Z"
+    },
     {
       "id": "aud-6smryq0",
       "actorEmail": "indraverseig@gmail.com",

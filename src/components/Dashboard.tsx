@@ -39,6 +39,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { CampusAsset, User } from '../types';
 import { calculateCampusCarbonStats } from '../utils/sustainabilityUtils';
 import { CmsConfig } from '../utils/cmsStore';
+import CarbonSmokeTreeVisualizer from './CarbonSmokeTreeVisualizer';
 
 interface DashboardProps {
   assets: CampusAsset[];
@@ -99,7 +100,7 @@ function AnimatedCounter({ value, duration = 1000, decimals = 0, prefix = '', su
 }
 
 export default function Dashboard({ assets, user, onUpdateAsset, cmsConfig }: DashboardProps) {
-  const [activeChartTab, setActiveChartTab] = useState<'carbon-trend' | 'emission-breakdown' | 'tree-offsets' | 'category-distribution'>('carbon-trend');
+  const [activeChartTab, setActiveChartTab] = useState<'carbon-trend' | 'smoke-metaphor' | 'emission-breakdown' | 'tree-offsets' | 'category-distribution'>('carbon-trend');
 
   const activeAssets = useMemo(() => {
     return assets.filter(a => (a.status || 'Active') !== 'Inactive');
@@ -331,15 +332,17 @@ export default function Dashboard({ assets, user, onUpdateAsset, cmsConfig }: Da
                 <p className="body-text text-xs mt-0.5 font-medium">Automatic asset-calculated analytics & offset trend calibrations.</p>
               </div>
               <div className="flex flex-wrap gap-1 bg-[#F2F6FB] p-1 rounded-xl border border-slate-200">
-                {(['carbon-trend', 'emission-breakdown', 'tree-offsets', 'category-distribution'] as const).map((tabKey) => {
+                {(['carbon-trend', 'smoke-metaphor', 'emission-breakdown', 'tree-offsets', 'category-distribution'] as const).map((tabKey) => {
                   const labelMap = {
                     'carbon-trend': 'Monthly Carbon Trend',
+                    'smoke-metaphor': 'Smoke & Tree Metaphor',
                     'emission-breakdown': 'Emission Breakdown',
                     'tree-offsets': 'Tree Offset Species',
                     'category-distribution': 'Asset Category Counts'
                   };
                   const colors = {
                     'carbon-trend': '#10B981',
+                    'smoke-metaphor': '#8B5CF6',
                     'emission-breakdown': '#EF4444',
                     'tree-offsets': '#059669',
                     'category-distribution': '#0056D2'
@@ -364,8 +367,11 @@ export default function Dashboard({ assets, user, onUpdateAsset, cmsConfig }: Da
             </div>
             
             <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                {activeChartTab === 'carbon-trend' ? (
+              {activeChartTab === 'smoke-metaphor' ? (
+                <CarbonSmokeTreeVisualizer data={monthlyCarbonTrend} />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {activeChartTab === 'carbon-trend' ? (
                   <AreaChart data={monthlyCarbonTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
@@ -437,6 +443,7 @@ export default function Dashboard({ assets, user, onUpdateAsset, cmsConfig }: Da
                   </PieChart>
                 )}
               </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
